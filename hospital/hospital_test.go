@@ -3,6 +3,7 @@ package hospital_test
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"objetosCostenos/hospital"
 )
@@ -208,5 +209,35 @@ func TestSevereReport(t *testing.T) {
 	}
 	if n, ok := report[never]; !ok || n != 0 {
 		t.Errorf("P-002 debería aparecer con 0 episodios, got %d (presente=%v)", n, ok)
+	}
+}
+
+func TestSimulateKeepsStateConsistent(t *testing.T) {
+	// Pensado para correr con: go test -race ./...
+	h, _ := newTestHospital(t, 3)
+	ids := []string{"P-001", "P-002", "P-003", "P-004", "P-005"}
+	for _, id := range ids {
+		admit(t, h, id, hospital.NarcolepsySevere)
+	}
+
+	const attacks = 20
+	for _, err := range h.Simulate(attacks, time.Millisecond) {
+		if !errors.Is(err, hospital.ErrNoRoomAvailable) {
+			t.Errorf("error inesperado en la simulación: %v", err)
+		}
+	}
+
+	if got, want := len(h.History()), attacks*len(ids); got != want {
+		t.Errorf("historial con %d episodios, se esperaban %d", got, want)
+	}
+	for _, r := range h.Rooms() {
+		if len(r.Occupants()) != 0 || r.State() != hospital.RoomAvailable {
+			t.Errorf("la habitación %d debería quedar libre al final", r.Number())
+		}
+	}
+	for _, p := range h.Patients() {
+		if p.State() != hospital.Awake {
+			t.Errorf("%s terminó en estado %v, se esperaba Awake", p.ID(), p.State())
+		}
 	}
 }

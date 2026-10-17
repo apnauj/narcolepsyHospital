@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -12,7 +13,10 @@ import (
 // previsto: el paciente se queda en el pasillo y el programa sigue.
 var ErrNoRoomAvailable = errors.New("no hay habitación disponible")
 
+// Hospital es seguro para usar desde varias goroutines: todos sus métodos
+// exportados toman mu, así que dos asignaciones simultáneas se serializan.
 type Hospital struct {
+	mu           sync.Mutex
 	name         string
 	doctors      []*Doctor
 	staff        []Attender
@@ -34,26 +38,44 @@ func NewHospital(name string) (*Hospital, error) {
 func (h *Hospital) Name() string { return h.name }
 
 func (h *Hospital) Patients() []*Patient {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
 	return slices.Clone(h.patients)
 }
 
 func (h *Hospital) Doctors() []*Doctor {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
 	return slices.Clone(h.doctors)
 }
 
 func (h *Hospital) Staff() []Attender {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
 	return slices.Clone(h.staff)
 }
 
 func (h *Hospital) Rooms() []*Room {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
 	return slices.Clone(h.rooms)
 }
 
 func (h *Hospital) History() []EpisodeRecord {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
 	return slices.Clone(h.history)
 }
 
 func (h *Hospital) AdmitPatient(p *Patient) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
 	if p == nil {
 		return errors.New("no se puede admitir un paciente nil")
 	}
@@ -68,6 +90,9 @@ func (h *Hospital) AdmitPatient(p *Patient) error {
 // HireDoctor contrata a un doctor: queda en la lista de doctores y, como
 // cualquier Attender, en el personal que atiende emergencias.
 func (h *Hospital) HireDoctor(d *Doctor) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
 	if d == nil {
 		return errors.New("no se puede contratar un doctor nil")
 	}
@@ -81,6 +106,9 @@ func (h *Hospital) HireDoctor(d *Doctor) error {
 
 // HireStaff contrata a cualquier Attender (camillero, enfermera...).
 func (h *Hospital) HireStaff(a Attender) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
 	if a == nil {
 		return errors.New("no se puede contratar personal nil")
 	}
@@ -98,6 +126,9 @@ func (h *Hospital) hire(a Attender) error {
 }
 
 func (h *Hospital) AddRoom(r *Room) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
 	if r == nil {
 		return errors.New("no se puede registrar una habitación nil")
 	}
@@ -113,6 +144,9 @@ func (h *Hospital) AddRoom(r *Room) error {
 // habitación libre. Si no hay ninguna devuelve ErrNoRoomAvailable y el
 // paciente sigue en AsleepInHallway.
 func (h *Hospital) AssignRoom(p *Patient) (*Room, error) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
 	return h.assignRoom(p)
 }
 
@@ -145,6 +179,9 @@ func (h *Hospital) assignRoom(p *Patient) (*Room, error) {
 // Si no hubo cama, el episodio igual queda registrado y se devuelve un error
 // que cumple errors.Is(err, ErrNoRoomAvailable).
 func (h *Hospital) RegisterEpisode(p *Patient, location Location) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
 	if err := h.checkAdmitted(p); err != nil {
 		return err
 	}
@@ -186,6 +223,9 @@ func (h *Hospital) dispatch(p *Patient, location Location) (EpisodeRecord, error
 
 // WakeUpPatient despierta a un paciente del hospital y libera su cama.
 func (h *Hospital) WakeUpPatient(p *Patient) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
 	if err := h.checkAdmitted(p); err != nil {
 		return err
 	}
@@ -196,6 +236,9 @@ func (h *Hospital) WakeUpPatient(p *Patient) error {
 // PatientsInHallway devuelve los pacientes dormidos sin cama, para poder
 // mandarles un camillero.
 func (h *Hospital) PatientsInHallway() []*Patient {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
 	var inHallway []*Patient
 	for _, p := range h.patients {
 		if p.state == AsleepInHallway {
@@ -208,6 +251,9 @@ func (h *Hospital) PatientsInHallway() []*Patient {
 // SevereReport cruza los pacientes de nivel Severe con el historial y
 // devuelve cuántos episodios tuvo cada uno hoy (incluye los que tienen 0).
 func (h *Hospital) SevereReport() map[*Patient]int {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
 	report := make(map[*Patient]int)
 	for _, p := range h.patients {
 		if p.narcolepsyLevel == NarcolepsySevere {
