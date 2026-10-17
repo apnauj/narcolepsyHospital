@@ -5,5 +5,5 @@ type Hospital struct {
 	doctors  []*Doctor
 	patients []*Patient
 	rooms    []*Room
-	history  []*Episode
+	history  []EpisodeRecord
 }
