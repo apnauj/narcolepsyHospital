@@ -1,0 +1,29 @@
+# Uso de IA
+
+> Borrador generado con la IA. Las secciones marcadas con **(completar)** las tengo que escribir yo antes de entregar. El resto lo tengo que revisar para que coincida con lo que de verdad pasó.
+
+## Herramientas y para qué
+
+- **Claude Code (Claude Opus 5.5)**, para:
+  - revisar el enunciado y el código que ya existía;
+  - proponer el plan y las preguntas de diseño;
+  - implementar el paquete `hospital`, los tests, el programa de consola y la simulación concurrente;
+  - redactar este borrador y el README.
+- Yo tomé las decisiones de alcance: seguir la estructura del enunciado, eliminar `internal/service`, añadir la concurrencia, ofrecer escenario o menú en `main`, despachar por round-robin y dejar la interfaz de notificaciones para hacerla yo.
+
+## Prompts decisivos
+
+1. El prompt inicial. Pedía leer el enunciado y revisar la estructura existente, y **antes de escribir código** presentar qué estaba hecho, qué faltaba, un plan y las dudas, para que yo lo aprobara. Ponía como reglas: solo biblioteca estándar, nada extra, código idiomático y un `main` con menú por consola.
+2. La respuesta al plan: *"seguimos directamente la estructura del profe"*, *"la concurrencia sí impleméntala"*, *"quiero que el main tenga las dos opciones"*, *"trabajemos con gitflow"*.
+3. **(completar)**
+
+## Casos en que el código generado estaba mal o no era idiomático
+
+1. En `readInt` la IA llamó `min` y `max` a los parámetros. Desde Go 1.21 esos nombres son funciones predefinidas (built-ins), y el parámetro las tapaba dentro de la función. Se renombraron a `lo` y `hi`.
+2. En el escenario usó la variable `toño`. Es un identificador válido en Go (acepta letras Unicode), pero es incómodo de escribir y poco habitual. Se cambió a `tono`.
+3. En el escenario se llamaba a `freed.Number()` sin comprobar si `freed` era `nil`. Si el paciente no hubiera tenido habitación, el programa habría hecho panic. Se añadió la comprobación.
+4. El código que había en el repositorio antes de empezar tenía `narcolepsyLevel` como `string` en vez de constante tipada, punteros innecesarios a `PatientState` y `Location`, y un `internal/service` que llamaba a `hospital.NewDoctor`, que no existía. **(completar: de dónde salió ese código y cómo lo detecté)**
+
+## Qué aprendí
+
+**(completar)**
