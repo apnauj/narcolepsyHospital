@@ -17,7 +17,13 @@ func takeSnapshot(h *hospital.Hospital, mode string) Snapshot {
 		StaffQueue: ids(h.WaitingForStaff()),
 	}
 
-	for _, r := range h.Rooms() {
+	// Las listas arrancan vacías y no nil: en el JSON deben salir como [].
+	rooms, patients, staff := h.Rooms(), h.Patients(), h.Staff()
+	s.Rooms = make([]RoomView, 0, len(rooms))
+	s.Patients = make([]PatientView, 0, len(patients))
+	s.Staff = make([]StaffView, 0, len(staff))
+
+	for _, r := range rooms {
 		s.Rooms = append(s.Rooms, RoomView{
 			Number:    r.Number(),
 			State:     r.State().String(),
@@ -28,7 +34,7 @@ func takeSnapshot(h *hospital.Hospital, mode string) Snapshot {
 
 	history := h.History()
 	attendedBy := make(map[string]string) // paciente -> personal
-	for _, p := range h.Patients() {
+	for _, p := range patients {
 		view := PatientView{
 			ID:     p.ID(),
 			Name:   p.Name(),
@@ -50,10 +56,10 @@ func takeSnapshot(h *hospital.Hospital, mode string) Snapshot {
 		s.Patients = append(s.Patients, view)
 	}
 
-	for _, a := range h.Staff() {
+	for _, a := range staff {
 		view := StaffView{ID: a.ID(), Name: a.Name(), Kind: kindOf(a)}
-		for patient, staff := range attendedBy {
-			if staff == a.ID() {
+		for patient, attender := range attendedBy {
+			if attender == a.ID() {
 				view.BusyWith = patient
 			}
 		}
@@ -95,7 +101,7 @@ func ids(patients []*hospital.Patient) []string {
 
 // locations lista todos los valores válidos de hospital.Location.
 func locations() []LocationView {
-	var out []LocationView
+	out := []LocationView{}
 	for l := hospital.LocationUnknown + 1; l.IsValid(); l++ {
 		out = append(out, LocationView{ID: int(l), Name: l.String()})
 	}
