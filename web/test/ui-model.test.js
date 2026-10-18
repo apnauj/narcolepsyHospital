@@ -127,7 +127,7 @@ test("objetivos de Ataque y Despertar", () => {
   const snap = snapshot();
   assert.equal(chooseAttackTarget(snap, sel("P-005")).patient.id, "P-005");
   assert.equal(chooseAttackTarget(snap, sel("P-004")).patient, null);
-  assert.match(chooseAttackTarget(snap, sel("P-004")).reason, /ya está dormido/);
+  assert.match(chooseAttackTarget(snap, sel("P-004")).reason, /ya está durmiendo/);
   assert.equal(chooseAttackTarget(snap, null, () => 0.99).patient.id, "P-005"); // único despierto
   assert.equal(chooseWakeTarget(snap, sel("P-001")).patient.id, "P-001");
   assert.equal(chooseWakeTarget(snap, sel("P-004")).patient.id, "P-004"); // dormido en el pasillo también

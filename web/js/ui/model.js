@@ -104,7 +104,7 @@ export function selectedPatient(snapshot, selection) {
 export function chooseAttackTarget(snapshot, selection, rng = Math.random) {
   const sel = selectedPatient(snapshot, selection);
   if (sel) {
-    if (sel.asleep) return { patient: null, reason: `${sel.name} ya está dormido.` };
+    if (sel.asleep) return { patient: null, reason: `${sel.name} ya está durmiendo.` };
     return { patient: sel };
   }
   const awake = (snapshot?.patients ?? []).filter((p) => !p.asleep);
@@ -116,7 +116,7 @@ export function chooseAttackTarget(snapshot, selection, rng = Math.random) {
 export function chooseWakeTarget(snapshot, selection) {
   const sel = selectedPatient(snapshot, selection);
   if (!sel) return { patient: null, reason: "Selecciona primero a un paciente dormido." };
-  if (!sel.asleep) return { patient: null, reason: `${sel.name} ya está despierto.` };
+  if (!sel.asleep) return { patient: null, reason: `${sel.name} no está durmiendo.` };
   return { patient: sel };
 }
 

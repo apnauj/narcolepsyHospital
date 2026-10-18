@@ -133,7 +133,7 @@ TILE = { VOID, FLOOR, WALL, DOOR, ... }       // exportado
 
 findPath(world, from, to, { occupied }) -> [{tx,ty}] | null   // A*, 4 vecinos, desempate estable
 class Camera { constructor(viewW, viewH, worldW, worldH); x; y; zoom (1|2);
-               pan(dx,dy); centerOn(x,y); toWorld(sx,sy); toScreen(wx,wy) }
+               pan(dx,dy); centerOn(x,y); toWorld(sx,sy) -> {x,y}; toScreen(wx,wy) -> {x,y} }
 attachCameraControls(camera, canvas)          // flechas/WASD y arrastre con el mouse
 drawWorld(ctx, world, camera, painter = flatPainter)   // painter(ctx, tile, x, y, tx, ty)
 ```
@@ -166,6 +166,7 @@ class Director {
   update(dt)                   // dt en segundos, ya multiplicado por la velocidad
   draw(ctx, camera, renderer)  // ordena por Y y llama a renderer.drawEntity
   pick(wx, wy) -> { kind, id } | null
+  robotsFree() -> number       // camillas robot en base; lo usa Indicators
   locationOf(patientId) -> string | null   // nombre de la zona donde está; la usa «Ataque»
   visualStatus(id) -> string   // "caminando" | "atacado" | "esperando" | "en traslado" | "siendo atendido" | "despertando" | "patrullando" | "atendiendo" | "transportando" | "en base"
 }
@@ -238,7 +239,7 @@ tilePainter(art)                     // misma firma que flatPainter (ola 4)
 gofmt -l .                 # sin salida
 go vet ./...
 go test -race ./...
-(cd web && node --test test/)
+(cd web && node --test "test/*.test.js")   # con un directorio, Node 22 falla
 git diff develop -- hospital/   # vacío
 ```
 
