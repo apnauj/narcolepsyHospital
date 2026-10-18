@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vista previa del mapa</title>
+  <link rel="stylesheet" href="../css/base.css">
+  <style>
+    /* Página de prueba visual de web/js/world/. No se embebe en el binario:
+       se sirve con `python3 -m http.server --directory web` y se abre
+       /test/world-preview.html. */
+    #app { flex-wrap: wrap; align-items: flex-start; }
+    #side {
+      background: var(--panel);
+      padding: 8px 12px;
+      min-width: 240px;
+      max-width: 320px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    #side h1 { font-size: 15px; margin: 0 0 8px; }
+    #side label { display: block; margin: 6px 0; }
+    #side code { background: #0001; padding: 0 3px; }
+    #info, #hover { white-space: pre-wrap; margin: 8px 0; }
+    #screen { cursor: grab; }
+    #overview { display: block; max-width: 100%; image-rendering: pixelated; margin: 8px 0; }
+    @media (max-width: 1240px) { :root { --scale: 2; } }
+    @media (max-width: 820px) { :root { --scale: 1; } }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <canvas id="screen" width="384" height="216"></canvas>
+    <div id="side">
+      <h1>Hospital de los Costeños: mapa</h1>
+      <label>Habitaciones
+        <select id="rooms"></select>
+      </label>
+      <label><input type="checkbox" id="showPois" checked> Mostrar pois</label>
+      <label><input type="checkbox" id="showSpots" checked> Puertas, camas, base y entrada</label>
+      <p>Flechas/WASD o arrastrar: mover. <code>Z</code>: zoom ×1/×2.<br>
+        Clic en dos tiles: camino A*. Clic derecho: borrar.<br>
+        Clic en el mapa completo: ir ahí.</p>
+      <canvas id="overview"></canvas>
+      <div id="info"></div>
+      <div id="hover"></div>
+    </div>
+  </div>
+  <script type="module">
+    import {
+      generateWorld, zoneAt, roomAt, findPath, Camera, attachCameraControls, drawWorld, TILE_SIZE,
+    } from "../js/world/index.js";
+
+    const S = TILE_SIZE;
+    const canvas = document.getElementById("screen");
+    const ctx = canvas.getContext("2d");
+    const select = document.getElementById("rooms");
+    const info = document.getElementById("info");
+    const hover = document.getElementById("hover");
+    const showPois = document.getElementById("showPois");
+    const showSpots = document.getElementById("showSpots");
+    const overview = document.getElementById("overview");
+    const OVERVIEW_SCALE = 0.25; // 4 px por tile
+    let overviewImage = null;
+
+    // ?rooms=N elige el tamaño inicial (por defecto 6).
+    const initial = Math.min(10, Math.max(2, Number(new URLSearchParams(location.search).get("rooms")) || 6));
+    for (let n = 2; n <= 10; n++) select.add(new Option(String(n), String(n), n === initial, n === initial));
+
+    let world = null;
+    let camera = null;
+    let controls = null;
+    let picks = [];
+    let path = null;
+
+    function load(n) {
+      const t0 = performance.now();
+      world = generateWorld({ rooms: n });
+      const ms = performance.now() - t0;
+      if (!camera) {
+        camera = new Camera(canvas.width, canvas.height, world.cols * S, world.rows * S);
+        controls = attachCameraControls(camera, canvas);
+      } else {
+        camera.setWorldSize(world.cols * S, world.rows * S);
+      }
+      camera.centerOn((world.spawn.tx + 0.5) * S, (world.spawn.ty + 0.5) * S);
+      overviewImage = renderOverview(world);
+      picks = [];
+      path = null;
+      const ratio = Math.max(world.cols, world.rows) / Math.min(world.cols, world.rows);
+      info.textContent =
+        `${world.cols}×${world.rows} tiles (relación ${ratio.toFixed(2)}), generado en ${ms.toFixed(1)} ms\n` +
+        `${world.rooms.length} habitaciones: ${world.rooms.map((r) => r.number).join(", ")}\n` +
+        `${world.zones.length} zonas, ${world.pois.length} pois, ${world.decor.length} decor\n\n` +
+        world.zones.map((z) => `· ${z.name} (${z.location})`).join("\n");
+    }
+
+    // Mapa completo a 1/4: se dibuja una vez con una cámara del tamaño del mundo.
+    function renderOverview(w) {
+      const full = document.createElement("canvas");
+      full.width = w.cols * S;
+      full.height = w.rows * S;
+      drawWorld(full.getContext("2d"), w, new Camera(full.width, full.height, full.width, full.height));
+      overview.width = Math.round(full.width * OVERVIEW_SCALE);
+      overview.height = Math.round(full.height * OVERVIEW_SCALE);
+      const octx = overview.getContext("2d");
+      octx.imageSmoothingEnabled = true;
+      octx.drawImage(full, 0, 0, overview.width, overview.height);
+      return octx.getImageData(0, 0, overview.width, overview.height);
+    }
+
+    function drawOverviewFrame() {
+      const octx = overview.getContext("2d");
+      octx.putImageData(overviewImage, 0, 0);
+      octx.strokeStyle = "#d62839";
+      octx.lineWidth = 1;
+      octx.strokeRect(
+        Math.round(camera.x * OVERVIEW_SCALE) + 0.5, Math.round(camera.y * OVERVIEW_SCALE) + 0.5,
+        Math.round(camera.visibleW * OVERVIEW_SCALE), Math.round(camera.visibleH * OVERVIEW_SCALE));
+    }
+
+    // Clic en el mapa completo: centrar la cámara ahí.
+    overview.addEventListener("click", (e) => {
+      const box = overview.getBoundingClientRect();
+      const ox = ((e.clientX - box.left) * overview.width) / box.width;
+      const oy = ((e.clientY - box.top) * overview.height) / box.height;
+      camera.centerOn(ox / OVERVIEW_SCALE, oy / OVERVIEW_SCALE);
+    });
+
+    function tileUnder(e) {
+      const box = canvas.getBoundingClientRect();
+      const sx = ((e.clientX - box.left) * canvas.width) / box.width;
+      const sy = ((e.clientY - box.top) * canvas.height) / box.height;
+      const w = camera.toWorld(sx, sy);
+      return { tx: Math.floor(w.x / S), ty: Math.floor(w.y / S) };
+    }
+
+    canvas.addEventListener("pointermove", (e) => {
+      const t = tileUnder(e);
+      const zone = zoneAt(world, t.tx, t.ty);
+      const room = roomAt(world, t.tx, t.ty);
+      const poi = world.pois.find((p) => p.tx === t.tx && p.ty === t.ty);
+      const decor = world.decor.filter((d) => d.tx === t.tx && d.ty === t.ty).map((d) => d.kind + (d.label ? ` "${d.label}"` : ""));
+      hover.textContent =
+        `tile (${t.tx}, ${t.ty}) ${world.walkable(t.tx, t.ty) ? "caminable" : "sólido"}\n` +
+        `zona: ${zone ? `${zone.name} / ${zone.location}` : "—"}` +
+        (room ? `\nhabitación ${room.number}` : "") +
+        (poi ? `\npoi: ${poi.kind}` : "") +
+        (decor.length ? `\ndecor: ${decor.join(", ")}` : "");
+    });
+
+    canvas.addEventListener("click", (e) => {
+      if (controls.wasDrag()) return;
+      picks.push(tileUnder(e));
+      if (picks.length > 2) picks = picks.slice(-1);
+      path = picks.length === 2 ? findPath(world, picks[0], picks[1]) : null;
+      if (picks.length === 2 && !path) hover.textContent += "\nsin camino";
+    });
+    canvas.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      picks = [];
+      path = null;
+    });
+    select.addEventListener("change", () => load(Number(select.value)));
+
+    function mark(t, color, inset = 4) {
+      ctx.fillStyle = color;
+      ctx.fillRect(t.tx * S + inset, t.ty * S + inset, S - 2 * inset, S - 2 * inset);
+    }
+
+    function frame() {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      drawWorld(ctx, world, camera);
+      // Capas de depuración, en coordenadas de mundo.
+      ctx.save();
+      ctx.translate(-camera.offsetX, -camera.offsetY);
+      ctx.scale(camera.zoom, camera.zoom);
+      if (showSpots.checked) {
+        for (const r of world.rooms) {
+          mark(r.door, "rgba(214,40,57,.55)", 5);
+          mark(r.bedside, "rgba(47,128,194,.7)", 5);
+        }
+        for (const p of world.robotBase) mark(p, "rgba(247,201,72,.8)", 3);
+        mark(world.spawn, "rgba(214,40,57,.9)", 2);
+      }
+      if (showPois.checked) {
+        ctx.font = "5px monospace";
+        for (const p of world.pois) {
+          mark(p, "rgba(255,255,255,.65)", 6);
+          ctx.fillStyle = "#2b2118";
+          ctx.fillText(p.kind, p.tx * S + 1, p.ty * S + 15);
+        }
+      }
+      if (path) for (const t of path) mark(t, "rgba(214,40,57,.6)", 5);
+      for (const t of picks) mark(t, "rgba(43,33,24,.8)", 3);
+      ctx.restore();
+      drawOverviewFrame();
+      requestAnimationFrame(frame);
+    }
+
+    load(Number(select.value));
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>
