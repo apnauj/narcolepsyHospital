@@ -134,3 +134,28 @@ type SevereCount struct {
 	Patient  string `json:"patient"`
 	Episodes int    `json:"episodes"`
 }
+
+// ResetRequest es el cuerpo de POST /api/reset. Los rangos válidos están en
+// la sección 2 de docs/gui/CONTRACT.md.
+type ResetRequest struct {
+	Rooms     int `json:"rooms"`
+	Doctors   int `json:"doctors"`
+	Orderlies int `json:"orderlies"`
+	Patients  int `json:"patients"`
+}
+
+// StaffRequest es el cuerpo de POST /api/staff.
+type StaffRequest struct {
+	Kind string `json:"kind"` // KindDoctor o KindOrderly
+}
+
+// AttackRequest es el cuerpo de POST /api/attacks.
+type AttackRequest struct {
+	Patient  string `json:"patient"`
+	Location int    `json:"location"` // un hospital.Location válido
+}
+
+// WakeUpRequest es el cuerpo de POST /api/wakeups.
+type WakeUpRequest struct {
+	Patient string `json:"patient"`
+}
