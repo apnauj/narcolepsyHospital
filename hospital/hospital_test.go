@@ -131,30 +131,45 @@ func TestPatientsInHallway(t *testing.T) {
 	}
 }
 
-func TestWakeUpFreesRoomForHallwayPatient(t *testing.T) {
+func TestWakeUpGivesRoomToNextInQueue(t *testing.T) {
 	h, _ := newTestHospital(t, 1)
 	sleeper := admit(t, h, "P-001", hospital.NarcolepsyMild)
-	waiting := admit(t, h, "P-002", hospital.NarcolepsySevere)
+	first := admit(t, h, "P-002", hospital.NarcolepsySevere)
+	second := admit(t, h, "P-003", hospital.NarcolepsyMild)
 
 	if err := h.RegisterEpisode(sleeper, hospital.LocationCafeteria); err != nil {
 		t.Fatal(err)
 	}
-	if err := h.RegisterEpisode(waiting, hospital.LocationLobby); !errors.Is(err, hospital.ErrNoRoomAvailable) {
-		t.Fatalf("error = %v, se esperaba ErrNoRoomAvailable", err)
+	for _, p := range []*hospital.Patient{first, second} {
+		if err := h.RegisterEpisode(p, hospital.LocationLobby); !errors.Is(err, hospital.ErrNoRoomAvailable) {
+			t.Fatalf("error = %v, se esperaba ErrNoRoomAvailable", err)
+		}
 	}
 
 	if err := h.WakeUpPatient(sleeper); err != nil {
 		t.Fatal(err)
 	}
-	room, err := h.AssignRoom(waiting)
-	if err != nil {
-		t.Fatalf("AssignRoom tras liberar la cama: %v", err)
+	if room := first.Room(); room == nil || room.Number() != 101 || first.State() != hospital.AsleepInBed {
+		t.Fatalf("P-002 llegó primero a la cola: debería estar en la 101 (estado %v)", first.State())
 	}
-	if room.Number() != 101 || waiting.State() != hospital.AsleepInBed {
-		t.Errorf("habitación %d, estado %v; se esperaba 101 y AsleepInBed", room.Number(), waiting.State())
+	if q := h.WaitingForRoom(); len(q) != 1 || q[0] != second {
+		t.Errorf("cola de cama = %v, se esperaba solo P-003", q)
 	}
 	if sleeper.State() != hospital.Awake || sleeper.Room() != nil {
 		t.Error("el paciente que despertó debería estar Awake y sin habitación")
+	}
+
+	// Si quien espera se despierta, sale de la cola y la cama queda libre.
+	for _, p := range []*hospital.Patient{second, first} {
+		if err := h.WakeUpPatient(p); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if q := h.WaitingForRoom(); len(q) != 0 {
+		t.Errorf("cola de cama = %v, debería quedar vacía", q)
+	}
+	if r := h.Rooms()[0]; r.State() != hospital.RoomAvailable {
+		t.Errorf("la habitación 101 quedó %v, se esperaba Available", r.State())
 	}
 }
 
@@ -245,6 +260,44 @@ func TestNoStaffAvailable(t *testing.T) {
 	if unattended.State() != hospital.AsleepInBed {
 		t.Errorf("estado = %v; la falta de personal no debería quitarle la cama libre", unattended.State())
 	}
+	if q := h.WaitingForStaff(); len(q) != 1 || q[0] != unattended {
+		t.Errorf("cola de atención = %v, se esperaba solo P-003", q)
+	}
+}
+
+func TestWakeUpFreesStaffForNextInQueue(t *testing.T) {
+	h, doctor := newTestHospital(t, 3)
+	first := admit(t, h, "P-001", hospital.NarcolepsyMild)
+	second := admit(t, h, "P-002", hospital.NarcolepsyMild)
+	waiting := admit(t, h, "P-003", hospital.NarcolepsySevere)
+
+	for _, p := range []*hospital.Patient{first, second} {
+		if err := h.RegisterEpisode(p, hospital.LocationLobby); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := h.RegisterEpisode(waiting, hospital.LocationCafeteria); !errors.Is(err, hospital.ErrNoStaffAvailable) {
+		t.Fatalf("error = %v, se esperaba ErrNoStaffAvailable", err)
+	}
+
+	// El doctor atendía a P-001: al despertar este, queda libre para P-003.
+	if err := h.WakeUpPatient(first); err != nil {
+		t.Fatal(err)
+	}
+	if q := h.WaitingForStaff(); len(q) != 0 {
+		t.Errorf("cola de atención = %v, debería quedar vacía", q)
+	}
+
+	history := h.History()
+	if len(history) != 3 {
+		t.Fatalf("historial con %d episodios, se esperaban 3 (se reemplaza, no se agrega)", len(history))
+	}
+	if a := history[2].Attender(); history[2].Patient() != waiting || a == nil || a.ID() != "D-01" {
+		t.Errorf("el episodio de P-003 debería quedar atendido por D-01, got %v", a)
+	}
+	if episodes := doctor.MyEpisodes(); len(episodes) != 2 || episodes[1].Patient() != waiting {
+		t.Error("el doctor debería tener los episodios de P-001 y P-003")
+	}
 }
 
 func TestSevereReport(t *testing.T) {
@@ -304,5 +357,8 @@ func TestSimulateKeepsStateConsistent(t *testing.T) {
 		if p.State() != hospital.Awake {
 			t.Errorf("%s terminó en estado %v, se esperaba Awake", p.ID(), p.State())
 		}
+	}
+	if len(h.WaitingForRoom()) != 0 || len(h.WaitingForStaff()) != 0 {
+		t.Error("las colas deberían quedar vacías al final")
 	}
 }
