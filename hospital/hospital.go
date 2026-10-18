@@ -13,6 +13,10 @@ import (
 // previsto: el paciente se queda en el pasillo y el programa sigue.
 var ErrNoRoomAvailable = errors.New("no hay habitación disponible")
 
+// ErrNoStaffAvailable indica que todo el personal estaba atendiendo a otros
+// pacientes. También es un caso previsto: el episodio se registra sin atender.
+var ErrNoStaffAvailable = errors.New("no hay personal disponible")
+
 // Hospital es seguro para usar desde varias goroutines: todos sus métodos
 // exportados toman mu, así que dos asignaciones simultáneas se serializan.
 type Hospital struct {
@@ -23,7 +27,8 @@ type Hospital struct {
 	patients     []*Patient
 	rooms        []*Room
 	history      []EpisodeRecord
-	nextAttender int // turno del round-robin sobre staff
+	attending    map[string]*Patient // ID del personal -> paciente que atiende
+	nextAttender int                 // turno del round-robin sobre staff
 }
 
 func NewHospital(name string) (*Hospital, error) {
@@ -32,7 +37,7 @@ func NewHospital(name string) (*Hospital, error) {
 		return nil, errors.New("el hospital necesita un nombre")
 	}
 
-	return &Hospital{name: name}, nil
+	return &Hospital{name: name, attending: make(map[string]*Patient)}, nil
 }
 
 func (h *Hospital) Name() string { return h.name }
@@ -173,11 +178,12 @@ func (h *Hospital) assignRoom(p *Patient) (*Room, error) {
 }
 
 // RegisterEpisode procesa un ataque de sueño completo: el paciente se duerme,
-// se intenta darle cama, se despacha a alguien del personal y se guarda el
-// registro en el historial.
+// se intenta darle cama, se despacha a alguien libre del personal y se guarda
+// el registro en el historial.
 //
-// Si no hubo cama, el episodio igual queda registrado y se devuelve un error
-// que cumple errors.Is(err, ErrNoRoomAvailable).
+// Si no hubo cama o no había nadie libre, el episodio igual queda registrado
+// (sin atender en el segundo caso) y el error devuelto cumple
+// errors.Is(err, ErrNoRoomAvailable) o errors.Is(err, ErrNoStaffAvailable).
 func (h *Hospital) RegisterEpisode(p *Patient, location Location) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -194,34 +200,46 @@ func (h *Hospital) RegisterEpisode(p *Patient, location Location) error {
 
 	_, roomErr := h.assignRoom(p)
 
-	record, err := h.dispatch(p, location)
-	if err != nil {
-		return err
+	record, staffErr := h.dispatch(p, location)
+	switch {
+	case errors.Is(staffErr, ErrNoStaffAvailable):
+		record = newEpisodeRecord(p, nil, location)
+	case staffErr != nil:
+		return staffErr
 	}
 	h.history = append(h.history, record)
 
-	return roomErr
+	return errors.Join(roomErr, staffErr)
 }
 
 // dispatch reparte los ataques por turnos (round-robin) sin mirar el tipo
-// concreto de cada Attender. Si uno no puede atender, prueba con el siguiente.
+// concreto de cada Attender. Se salta a quien esté atendiendo a otro paciente
+// y, si uno no puede atender, prueba con el siguiente.
 func (h *Hospital) dispatch(p *Patient, location Location) (EpisodeRecord, error) {
 	var errs []error
 	for range len(h.staff) {
 		a := h.staff[h.nextAttender]
 		h.nextAttender = (h.nextAttender + 1) % len(h.staff)
 
+		if _, busy := h.attending[a.ID()]; busy {
+			continue
+		}
 		record, err := a.Attend(p, location)
 		if err == nil {
+			h.attending[a.ID()] = p
 			return record, nil
 		}
 		errs = append(errs, fmt.Errorf("%s: %w", a.Name(), err))
 	}
 
+	if len(errs) == 0 {
+		return EpisodeRecord{}, fmt.Errorf("%w para %s: queda sin atender", ErrNoStaffAvailable, p.ID())
+	}
 	return EpisodeRecord{}, fmt.Errorf("nadie pudo atender a %s: %w", p.ID(), errors.Join(errs...))
 }
 
-// WakeUpPatient despierta a un paciente del hospital y libera su cama.
+// WakeUpPatient despierta a un paciente del hospital, libera su cama y deja
+// libre a quien lo estaba atendiendo.
 func (h *Hospital) WakeUpPatient(p *Patient) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -229,8 +247,16 @@ func (h *Hospital) WakeUpPatient(p *Patient) error {
 	if err := h.checkAdmitted(p); err != nil {
 		return err
 	}
+	if err := p.WakeUp(); err != nil {
+		return err
+	}
 
-	return p.WakeUp()
+	for id, q := range h.attending {
+		if q == p {
+			delete(h.attending, id)
+		}
+	}
+	return nil
 }
 
 // PatientsInHallway devuelve los pacientes dormidos sin cama, para poder

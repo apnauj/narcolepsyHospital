@@ -160,14 +160,21 @@ func TestWakeUpFreesRoomForHallwayPatient(t *testing.T) {
 
 func TestDoctorMyEpisodes(t *testing.T) {
 	// Con un doctor y un camillero, el round-robin alterna: doctor, camillero, doctor.
+	// P-001 se despierta antes del tercer ataque para que el doctor quede libre.
 	h, doctor := newTestHospital(t, 3)
 	patients := []*hospital.Patient{
 		admit(t, h, "P-001", hospital.NarcolepsyMild),
 		admit(t, h, "P-002", hospital.NarcolepsyMild),
 		admit(t, h, "P-003", hospital.NarcolepsyMild),
 	}
-	for _, p := range patients {
-		if err := h.RegisterEpisode(p, hospital.LocationLobby); err != nil {
+	steps := []func() error{
+		func() error { return h.RegisterEpisode(patients[0], hospital.LocationLobby) },
+		func() error { return h.RegisterEpisode(patients[1], hospital.LocationLobby) },
+		func() error { return h.WakeUpPatient(patients[0]) },
+		func() error { return h.RegisterEpisode(patients[2], hospital.LocationLobby) },
+	}
+	for _, step := range steps {
+		if err := step(); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -179,6 +186,64 @@ func TestDoctorMyEpisodes(t *testing.T) {
 	if episodes[0].Patient() != patients[0] || episodes[1].Patient() != patients[2] {
 		t.Errorf("episodios del doctor para %s y %s, se esperaban P-001 y P-003",
 			episodes[0].Patient().ID(), episodes[1].Patient().ID())
+	}
+}
+
+func TestDispatchSkipsBusyStaff(t *testing.T) {
+	// El doctor sigue con P-001 dormido; aunque le toca el turno, el tercer
+	// ataque debe ir al camillero, que quedó libre cuando despertó P-002.
+	h, doctor := newTestHospital(t, 3)
+	busy := admit(t, h, "P-001", hospital.NarcolepsyMild)
+	woke := admit(t, h, "P-002", hospital.NarcolepsyMild)
+	next := admit(t, h, "P-003", hospital.NarcolepsyMild)
+
+	steps := []func() error{
+		func() error { return h.RegisterEpisode(busy, hospital.LocationLobby) },
+		func() error { return h.RegisterEpisode(woke, hospital.LocationLobby) },
+		func() error { return h.WakeUpPatient(woke) },
+		func() error { return h.RegisterEpisode(next, hospital.LocationLobby) },
+	}
+	for _, step := range steps {
+		if err := step(); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	history := h.History()
+	if got := history[len(history)-1].Attender().ID(); got != "O-01" {
+		t.Errorf("el tercer ataque lo atendió %s, se esperaba el camillero O-01", got)
+	}
+	if n := len(doctor.MyEpisodes()); n != 1 {
+		t.Errorf("el doctor tiene %d episodios, se esperaba 1", n)
+	}
+}
+
+func TestNoStaffAvailable(t *testing.T) {
+	h, _ := newTestHospital(t, 3)
+	first := admit(t, h, "P-001", hospital.NarcolepsyMild)
+	second := admit(t, h, "P-002", hospital.NarcolepsyMild)
+	unattended := admit(t, h, "P-003", hospital.NarcolepsySevere)
+
+	for _, p := range []*hospital.Patient{first, second} {
+		if err := h.RegisterEpisode(p, hospital.LocationLobby); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	err := h.RegisterEpisode(unattended, hospital.LocationCafeteria)
+	if !errors.Is(err, hospital.ErrNoStaffAvailable) {
+		t.Fatalf("error = %v, se esperaba ErrNoStaffAvailable", err)
+	}
+
+	history := h.History()
+	if len(history) != 3 {
+		t.Fatalf("historial con %d episodios, se esperaban 3", len(history))
+	}
+	if last := history[2]; last.Patient() != unattended || last.Attender() != nil {
+		t.Error("el episodio sin personal libre debería quedar registrado y sin atender")
+	}
+	if unattended.State() != hospital.AsleepInBed {
+		t.Errorf("estado = %v; la falta de personal no debería quitarle la cama libre", unattended.State())
 	}
 }
 
@@ -222,7 +287,7 @@ func TestSimulateKeepsStateConsistent(t *testing.T) {
 
 	const attacks = 20
 	for _, err := range h.Simulate(attacks, time.Millisecond) {
-		if !errors.Is(err, hospital.ErrNoRoomAvailable) {
+		if !errors.Is(err, hospital.ErrNoRoomAvailable) && !errors.Is(err, hospital.ErrNoStaffAvailable) {
 			t.Errorf("error inesperado en la simulación: %v", err)
 		}
 	}

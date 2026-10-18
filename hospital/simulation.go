@@ -10,7 +10,7 @@ import (
 // en ubicaciones al azar, con esperas aleatorias de hasta maxDelay, y se
 // despierta después de cada uno. Todas comparten el hospital, protegido por
 // su mutex. Devuelve los errores previstos que ocurrieron (por ejemplo,
-// ErrNoRoomAvailable).
+// ErrNoRoomAvailable o ErrNoStaffAvailable).
 func (h *Hospital) Simulate(attacks int, maxDelay time.Duration) []error {
 	patients := h.Patients()
 
