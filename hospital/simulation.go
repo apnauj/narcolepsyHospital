@@ -9,8 +9,9 @@ import (
 // Simulate lanza una goroutine por paciente. Cada una sufre `attacks` ataques
 // en ubicaciones al azar, con esperas aleatorias de hasta maxDelay, y se
 // despierta después de cada uno. Todas comparten el hospital, protegido por
-// su mutex. Devuelve los errores previstos que ocurrieron (por ejemplo,
-// ErrNoRoomAvailable o ErrNoStaffAvailable).
+// su mutex. Al despertar, cada una reparte las colas de espera. Devuelve los
+// errores previstos que ocurrieron (por ejemplo, ErrNoRoomAvailable o
+// ErrNoStaffAvailable).
 func (h *Hospital) Simulate(attacks int, maxDelay time.Duration) []error {
 	patients := h.Patients()
 

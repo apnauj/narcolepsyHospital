@@ -142,17 +142,12 @@ func runScenario() error {
 	}
 
 	printHallway(h.PatientsInHallway())
-
-	printHeader(fmt.Sprintf("%s se despierta", patientLabel(tono)))
-	freed := tono.Room()
-	if err := h.WakeUpPatient(tono); err != nil {
+	if err := assignAndPrint(h, wilfrido); err != nil {
 		return err
 	}
-	if freed != nil {
-		fmt.Printf("  libera la habitación %d\n", freed.Number())
-	}
 
-	if err := assignAndPrint(h, wilfrido); err != nil {
+	printHeader(fmt.Sprintf("%s se despierta", patientLabel(tono)))
+	if err := wakeUpAndPrint(h, tono); err != nil {
 		return err
 	}
 
@@ -185,6 +180,42 @@ func registerAndPrint(h *hospital.Hospital, p *hospital.Patient, location hospit
 		}
 	}
 	return nil
+}
+
+// wakeUpAndPrint despierta al paciente y muestra a quién le pasaron las colas
+// la cama y el personal que quedaron libres.
+func wakeUpAndPrint(h *hospital.Hospital, p *hospital.Patient) error {
+	freed := p.Room()
+	waitingRoom, waitingStaff := h.WaitingForRoom(), h.WaitingForStaff()
+	if err := h.WakeUpPatient(p); err != nil {
+		return err
+	}
+
+	fmt.Printf("  %s está despierto\n", patientLabel(p))
+	if freed != nil {
+		fmt.Printf("  libera la habitación %d\n", freed.Number())
+	}
+	for _, q := range waitingRoom {
+		if r := q.Room(); r != nil {
+			fmt.Printf("  %s sale de la cola de cama -> habitación %d\n", patientLabel(q), r.Number())
+		}
+	}
+	for _, q := range waitingStaff {
+		if q.IsAsleep() && !slices.Contains(h.WaitingForStaff(), q) {
+			fmt.Printf("  %s sale de la cola de atención -> lo atiende %s\n", patientLabel(q), attenderOf(h, q))
+		}
+	}
+	return nil
+}
+
+// attenderOf busca el último episodio del paciente en el historial.
+func attenderOf(h *hospital.Hospital, p *hospital.Patient) string {
+	for _, e := range slices.Backward(h.History()) {
+		if e.Patient() == p && e.Attender() != nil {
+			return e.Attender().Name()
+		}
+	}
+	return "nadie"
 }
 
 // assignAndPrint muestra la consulta 5.3 para un paciente del pasillo.

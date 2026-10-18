@@ -101,6 +101,21 @@ func printStatus(h *hospital.Hospital) {
 	for _, a := range h.Staff() {
 		fmt.Printf("  %s  %s\n", a.ID(), a.Name())
 	}
+
+	printHeader("Colas de espera")
+	printQueue("cama", h.WaitingForRoom())
+	printQueue("atención", h.WaitingForStaff())
+}
+
+func printQueue(name string, queue []*hospital.Patient) {
+	ids := make([]string, 0, len(queue))
+	for _, p := range queue {
+		ids = append(ids, p.ID())
+	}
+	if len(ids) == 0 {
+		ids = append(ids, "(vacía)")
+	}
+	fmt.Printf("  %-9s %s\n", name+":", strings.Join(ids, " -> "))
 }
 
 func menuSleepAttack(in *bufio.Scanner, h *hospital.Hospital) error {
@@ -136,11 +151,7 @@ func menuWakeUp(in *bufio.Scanner, h *hospital.Hospital) error {
 		return nil
 	}
 
-	if err := h.WakeUpPatient(p); err != nil {
-		return err
-	}
-	fmt.Printf("  %s está despierto\n", patientLabel(p))
-	return nil
+	return wakeUpAndPrint(h, p)
 }
 
 func menuAssignRoom(in *bufio.Scanner, h *hospital.Hospital) error {

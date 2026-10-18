@@ -14,7 +14,8 @@ import (
 var ErrNoRoomAvailable = errors.New("no hay habitación disponible")
 
 // ErrNoStaffAvailable indica que todo el personal estaba atendiendo a otros
-// pacientes. También es un caso previsto: el episodio se registra sin atender.
+// pacientes. También es un caso previsto: el episodio se registra sin atender
+// y el paciente espera en la cola de atención.
 var ErrNoStaffAvailable = errors.New("no hay personal disponible")
 
 // Hospital es seguro para usar desde varias goroutines: todos sus métodos
@@ -29,6 +30,8 @@ type Hospital struct {
 	history      []EpisodeRecord
 	attending    map[string]*Patient // ID del personal -> paciente que atiende
 	nextAttender int                 // turno del round-robin sobre staff
+	roomQueue    []*Patient          // dormidos en el pasillo que esperan cama
+	staffQueue   []*Patient          // dormidos que esperan a alguien libre
 }
 
 func NewHospital(name string) (*Hospital, error) {
@@ -75,6 +78,22 @@ func (h *Hospital) History() []EpisodeRecord {
 	defer h.mu.Unlock()
 
 	return slices.Clone(h.history)
+}
+
+// WaitingForRoom devuelve la cola de cama, en orden de llegada.
+func (h *Hospital) WaitingForRoom() []*Patient {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	return slices.Clone(h.roomQueue)
+}
+
+// WaitingForStaff devuelve la cola de atención, en orden de llegada.
+func (h *Hospital) WaitingForStaff() []*Patient {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	return slices.Clone(h.staffQueue)
 }
 
 func (h *Hospital) AdmitPatient(p *Patient) error {
@@ -127,6 +146,7 @@ func (h *Hospital) hire(a Attender) error {
 	}
 
 	h.staff = append(h.staff, a)
+	h.serveQueues()
 	return nil
 }
 
@@ -142,6 +162,7 @@ func (h *Hospital) AddRoom(r *Room) error {
 	}
 
 	h.rooms = append(h.rooms, r)
+	h.serveQueues()
 	return nil
 }
 
@@ -171,6 +192,7 @@ func (h *Hospital) assignRoom(p *Patient) (*Room, error) {
 			return nil, err
 		}
 		p.moveToBed(r)
+		h.roomQueue = without(h.roomQueue, p)
 		return r, nil
 	}
 
@@ -182,8 +204,9 @@ func (h *Hospital) assignRoom(p *Patient) (*Room, error) {
 // el registro en el historial.
 //
 // Si no hubo cama o no había nadie libre, el episodio igual queda registrado
-// (sin atender en el segundo caso) y el error devuelto cumple
-// errors.Is(err, ErrNoRoomAvailable) o errors.Is(err, ErrNoStaffAvailable).
+// (sin atender en el segundo caso), el paciente pasa a la cola que
+// corresponda y el error devuelto cumple errors.Is(err, ErrNoRoomAvailable)
+// o errors.Is(err, ErrNoStaffAvailable).
 func (h *Hospital) RegisterEpisode(p *Patient, location Location) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -199,11 +222,15 @@ func (h *Hospital) RegisterEpisode(p *Patient, location Location) error {
 	}
 
 	_, roomErr := h.assignRoom(p)
+	if errors.Is(roomErr, ErrNoRoomAvailable) {
+		h.roomQueue = append(h.roomQueue, p)
+	}
 
 	record, staffErr := h.dispatch(p, location)
 	switch {
 	case errors.Is(staffErr, ErrNoStaffAvailable):
 		record = newEpisodeRecord(p, nil, location)
+		h.staffQueue = append(h.staffQueue, p)
 	case staffErr != nil:
 		return staffErr
 	}
@@ -233,13 +260,14 @@ func (h *Hospital) dispatch(p *Patient, location Location) (EpisodeRecord, error
 	}
 
 	if len(errs) == 0 {
-		return EpisodeRecord{}, fmt.Errorf("%w para %s: queda sin atender", ErrNoStaffAvailable, p.ID())
+		return EpisodeRecord{}, fmt.Errorf("%w para %s: queda en espera", ErrNoStaffAvailable, p.ID())
 	}
 	return EpisodeRecord{}, fmt.Errorf("nadie pudo atender a %s: %w", p.ID(), errors.Join(errs...))
 }
 
 // WakeUpPatient despierta a un paciente del hospital, libera su cama y deja
-// libre a quien lo estaba atendiendo.
+// libre a quien lo estaba atendiendo. Lo que se libera pasa al siguiente de
+// cada cola. Si el paciente estaba esperando, sale de las colas.
 func (h *Hospital) WakeUpPatient(p *Patient) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -251,12 +279,46 @@ func (h *Hospital) WakeUpPatient(p *Patient) error {
 		return err
 	}
 
+	h.roomQueue = without(h.roomQueue, p)
+	h.staffQueue = without(h.staffQueue, p)
 	for id, q := range h.attending {
 		if q == p {
 			delete(h.attending, id)
 		}
 	}
+
+	h.serveQueues()
 	return nil
+}
+
+// serveQueues reparte las camas y el personal libres entre los que esperan,
+// por orden de llegada. Primero las camas, para que el registro de quien
+// por fin es atendido ya incluya su habitación.
+func (h *Hospital) serveQueues() {
+	for len(h.roomQueue) > 0 {
+		if _, err := h.assignRoom(h.roomQueue[0]); err != nil {
+			break
+		}
+	}
+
+	for len(h.staffQueue) > 0 {
+		p := h.staffQueue[0]
+		record, err := h.dispatch(p, p.currentLocation)
+		if err != nil {
+			break
+		}
+		h.staffQueue = h.staffQueue[1:]
+
+		// El episodio ya estaba en el historial sin atender: se reemplaza por
+		// el registro de quien lo atendió.
+		if i := slices.IndexFunc(h.history, func(e EpisodeRecord) bool { return e.id == record.id }); i >= 0 {
+			h.history[i] = record
+		}
+	}
+}
+
+func without(queue []*Patient, p *Patient) []*Patient {
+	return slices.DeleteFunc(queue, func(q *Patient) bool { return q == p })
 }
 
 // PatientsInHallway devuelve los pacientes dormidos sin cama, para poder
