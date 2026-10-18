@@ -11,7 +11,7 @@ type EpisodeRecord struct {
 	id       string
 	date     time.Time
 	patient  *Patient
-	attender Attender
+	attender Attender // nil si no había nadie libre
 	location Location
 	room     *Room // nil si no había cama libre
 }
@@ -40,6 +40,11 @@ func (e EpisodeRecord) Summary() string {
 		room = fmt.Sprintf("habitación %d", e.room.Number())
 	}
 
-	return fmt.Sprintf("%s  %s  %-20s -> %-15s (atendió %s)",
-		e.date.Format("2006-01-02 15:04"), e.patient.ID(), e.location, room, e.attender.Name())
+	attended := "sin atender"
+	if e.attender != nil {
+		attended = "atendió " + e.attender.Name()
+	}
+
+	return fmt.Sprintf("%s  %s  %-20s -> %-15s (%s)",
+		e.date.Format("2006-01-02 15:04"), e.patient.ID(), e.location, room, attended)
 }

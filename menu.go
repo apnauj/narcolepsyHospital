@@ -162,15 +162,22 @@ func menuSimulation(in *bufio.Scanner, h *hospital.Hospital) {
 	fmt.Printf("  lanzando %d goroutines...\n", len(h.Patients()))
 	errs := h.Simulate(attacks, simulationDelay)
 
-	withoutRoom := 0
+	withoutRoom, withoutStaff := 0, 0
 	for _, err := range errs {
-		if errors.Is(err, hospital.ErrNoRoomAvailable) {
+		noRoom := errors.Is(err, hospital.ErrNoRoomAvailable)
+		noStaff := errors.Is(err, hospital.ErrNoStaffAvailable)
+		if noRoom {
 			withoutRoom++
-			continue
 		}
-		fmt.Println("  error:", err)
+		if noStaff {
+			withoutStaff++
+		}
+		if !noRoom && !noStaff {
+			fmt.Println("  error:", err)
+		}
 	}
-	fmt.Printf("  %d episodios nuevos, %d sin cama disponible\n", len(h.History())-before, withoutRoom)
+	fmt.Printf("  %d episodios nuevos, %d sin cama disponible, %d sin personal libre\n",
+		len(h.History())-before, withoutRoom, withoutStaff)
 
 	printSevereReport(h.SevereReport())
 }

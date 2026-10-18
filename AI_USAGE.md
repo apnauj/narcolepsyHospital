@@ -23,6 +23,7 @@
 2. En el escenario usó la variable `toño`. Es un identificador válido en Go (acepta letras Unicode), pero es incómodo de escribir y poco habitual. Se cambió a `tono`.
 3. En el escenario se llamaba a `freed.Number()` sin comprobar si `freed` era `nil`. Si el paciente no hubiera tenido habitación, el programa habría hecho panic. Se añadió la comprobación.
 4. El código que había en el repositorio antes de empezar tenía `narcolepsyLevel` como `string` en vez de constante tipada, punteros innecesarios a `PatientState` y `Location`, y un `internal/service` que llamaba a `hospital.NewDoctor`, que no existía. **(completar: de dónde salió ese código y cómo lo detecté)**
+5. El despacho por round-robin que generó la IA le daba el ataque al siguiente de la lista aunque esa persona estuviera atendiendo a otro paciente. En el escenario, Karen Ospina atendía a Wilfrido mientras Toño, también suyo, seguía dormido. El enunciado pide despachar a quien esté *disponible*. Lo detecté yo al revisar la guía. Decidí que quien atiende queda ocupado hasta que su paciente despierta y que, si nadie está libre, el episodio igual se registra, sin atender, con el error `ErrNoStaffAvailable`. Se añadieron dos tests: `TestDispatchSkipsBusyStaff` y `TestNoStaffAvailable`.
 
 ## Qué aprendí
 

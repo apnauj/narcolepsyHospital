@@ -166,19 +166,24 @@ func runScenario() error {
 }
 
 // registerAndPrint registra un ataque e imprime el resultado. La falta de
-// cama es un caso previsto: se muestra y se sigue; cualquier otro error se
-// devuelve.
+// cama o de personal libre es un caso previsto: se muestra y se sigue;
+// cualquier otro error se devuelve.
 func registerAndPrint(h *hospital.Hospital, p *hospital.Patient, location hospital.Location) error {
 	err := h.RegisterEpisode(p, location)
-	switch {
-	case errors.Is(err, hospital.ErrNoRoomAvailable):
-		fmt.Printf("  %s se durmió en %s: %v\n", patientLabel(p), location, err)
-		return nil
-	case err != nil:
+	if err != nil && !errors.Is(err, hospital.ErrNoRoomAvailable) && !errors.Is(err, hospital.ErrNoStaffAvailable) {
 		return err
 	}
 
-	fmt.Printf("  %s se durmió en %s -> habitación %d\n", patientLabel(p), location, p.Room().Number())
+	fmt.Printf("  %s se durmió en %s", patientLabel(p), location)
+	if r := p.Room(); r != nil {
+		fmt.Printf(" -> habitación %d", r.Number())
+	}
+	fmt.Println()
+	if err != nil {
+		for line := range strings.SplitSeq(err.Error(), "\n") {
+			fmt.Println("    " + line)
+		}
+	}
 	return nil
 }
 
