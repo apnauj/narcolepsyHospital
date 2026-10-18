@@ -35,9 +35,9 @@ test("patientWoke con cama y personal liberados", () => {
 test("attackStarted usa el nombre exacto de la Location", () => {
   assert.equal(
     say({ type: "attackStarted", patient: "P-004", location: 6 }),
-    "¡Wilfrido Berrío se quedó dormido en el Main Hallway!",
+    "¡A Wilfrido Berrío le dio un ataque de sueño en el Main Hallway!",
   );
-  assert.equal(say({ type: "attackStarted", patient: "P-001", location: 34 }), "¡Toño Mendoza se quedó dormido en la Cafeteria!");
+  assert.equal(say({ type: "attackStarted", patient: "P-001", location: 34 }), "¡A Toño Mendoza le dio un ataque de sueño en la Cafeteria!");
 });
 
 test("roomAssigned directo y desde la cola", () => {
@@ -63,7 +63,7 @@ test("attentionAssigned directo y desde la cola", () => {
 
 test("IDs desconocidos y tipos nuevos no revientan", () => {
   assert.equal(say({ type: "patientAdmitted", patient: "P-099" }), "¡P-099 llegó al hospital!");
-  assert.equal(say({ type: "attackStarted", patient: "P-005", location: 77 }), "¡Nayeli Polo se quedó dormido en la zona 77!");
+  assert.equal(say({ type: "attackStarted", patient: "P-005", location: 77 }), "¡A Nayeli Polo le dio un ataque de sueño en la zona 77!");
   assert.match(say({ type: "algoNuevo" }), /algoNuevo/);
 });
 
@@ -87,7 +87,7 @@ test("describeResult: eventos en orden y luego avisos", () => {
     LOCATIONS,
   );
   assert.equal(lines.length, 3);
-  assert.match(lines[0], /dormido/);
+  assert.match(lines[0], /ataque de sueño/);
   assert.match(lines[2], /^No hay habitación/);
 });
 

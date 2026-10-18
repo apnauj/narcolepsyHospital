@@ -87,7 +87,7 @@ export function describeEvent(event, snapshot, locations) {
     }
 
     case "attackStarted":
-      return `¡${who} se quedó dormido ${inLocation(locations, event.location)}!`;
+      return `¡A ${who} le dio un ataque de sueño ${inLocation(locations, event.location)}!`;
 
     case "roomAssigned":
       if (event.fromQueue) {
