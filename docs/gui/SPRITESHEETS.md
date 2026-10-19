@@ -79,14 +79,26 @@ Las celdas sobrantes de una fila quedan vacías.
 | 8–11 | `attend` | down, up, left, right | 3 | 3 | sí | agachado; mano al frente (con la bata, la campana del estetoscopio); asiente |
 | 12–15 | `push` | down, up, left, right | 4 | 8 | sí | camina con las manos al frente (de perfil se ven) |
 | 16 | `attack` | todas | 3 | 3 | no | de pie, tambaleo, caída (acostado) |
-| 17 | `sleep` | todas | 2 | 1.5 | sí | acostado, ojos cerrados |
-| 18 | `stretcher` | todas | 1 | — | no | acostado (encima de cama, camilla o robot) |
-| 19 | `wake` | todas | 3 | 3 | no | se sienta con ojos cerrados, abre los ojos, se estira |
+| 17–20 | `sleep` | right, left, down, up | 2 | 1.5 | sí | acostado, ojos cerrados (la dirección es la de la cama, ver abajo) |
+| 21–24 | `stretcher` | right, left, down, up | 1 | — | no | acostado (encima de cama, camilla o robot) |
+| 25 | `wake` | todas | 3 | 3 | no | se sienta con ojos cerrados, abre los ojos, se estira |
 
 En el manifest, `characters.animations[anim].rows[dir]` da la fila. Las
-animaciones sin dirección repiten la misma fila para las cuatro. Acostado
-quiere decir con la cabeza a la **izquierda** y la cara hacia arriba; para
-otras orientaciones el renderer gira el frame (ver "Ride" en la sección 3).
+animaciones sin dirección repiten la misma fila para las cuatro.
+
+**`sleep` y `stretcher` son direccionales, pero su dirección es la de la
+cama**, de la cabecera a los pies (la misma `dir` de la decoración `bed`):
+
+| Fila | Cabeza | Cómo se genera |
+|---|---|---|
+| `right` | a la izquierda | el frame de pie girado 90° (cara hacia arriba) |
+| `left` | a la derecha | el reflejo del anterior |
+| `down` | arriba | el frame de pie, de frente, con los ojos cerrados |
+| `up` | abajo | el frame de `down` girado 180° |
+
+Así el paciente queda a lo largo de la cama en las 4 orientaciones sin girar
+nada en el canvas (a 20×20 el giro de 90° salía feo). La camilla y el robot
+usan la fila `right`; quien duerme en el suelo, `right` o `left` según mire.
 `characters.rows` lista las filas en orden, con su animación, dirección y
 cantidad de frames.
 
@@ -100,7 +112,7 @@ personaje se dibuja la misma celda de cada capa, en orden
 | Categoría | Capas (`id`) |
 |---|---|
 | `skin` | `piel-1` clara, `piel-2` trigueña, `piel-3` morena, `piel-4` negra. Es el cuerpo base: cara, brazos, piernas. Cada tono es un cambio de paleta de la misma grilla. |
-| `torso` | `camiseta-junior` (rayada rojiblanca, sin escudo ni logo, con tenis), `guayabera-blanca`, `guayabera-crema` (con abarcas), `floreada-azul`/`-amarilla`/`-roja`/`-menta`, `camisilla-blanca` (con chancletas). Personal: `bata` (blanca con estetoscopio), `quirurgico-azul`, `quirurgico-verde`. La ropa incluye pantalón o pantaloneta y calzado. |
+| `torso` | `camiseta-junior` (rayada rojiblanca, sin escudo ni logo, con tenis), `seleccion` (amarilla con cuello azul y franja roja, sin escudo de la FCF; pantaloneta azul y tenis blancos; sale en 1 de cada 5 pacientes), `guayabera-blanca`, `guayabera-crema` (con abarcas), `floreada-azul`/`-amarilla`/`-roja`/`-menta`, `camisilla-blanca` (con chancletas). Personal: `bata` (blanca con estetoscopio), `quirurgico-azul`, `quirurgico-verde`. La ropa incluye pantalón o pantaloneta y calzado. |
 | `head` | `pelo-corto-*`, `pelo-crespo-*`, `pelo-cola-*` (moña) en negro, café o canoso; `calvo`; `vueltiao`; `gorro-azul`, `gorro-verde` (quirúrgicos) |
 | `accessory` | `ninguno`, `mochila-wayuu`, `abanico`, `gafas-oscuras`, `cadena` |
 
@@ -157,6 +169,16 @@ apagados (`BakeFX = false` en `character.go`): los dibujan las partículas de
 `kind`. Si el objeto tiene la etiqueta `repeat` (como `counter`), el
 renderer lo repite en la huella.
 
+Kinds v2 (CONTRACT.md, 5b): `umbrella` (sombrilla de colores, 16×24: el
+toldo sobresale 8 px por arriba y el overlay lo repinta sobre los
+personajes), `shell` (concha, `under`), `cancha@8x5` (cancha de fútbol de
+128×80 vista desde arriba: pasto rayado, líneas, círculo central, áreas y un
+arco con red en cada extremo; es `under` y caminable) y la comida
+`salchipapas`, `cervezaAguila` (botella amarilla con banda roja, sin logo) y
+`arrozCoco` (arroz de coco con patacones), 1×1 para decoración con
+`onTable: true`. El painter repinta antes la mesa del mismo tile, así la
+comida queda encima aunque el orden de `decor` no lo asegure.
+
 Kinds cubiertos (un test de Go lo exige): `bed`, `bell`, `bench`, `board`,
 `chair` (silla Rimax blanca), `chargePad`, `charger`, `coffeeCart`,
 `counter`, `deskChair`, `doorNumber` (plaquita: el número lo escribe el
@@ -181,14 +203,18 @@ Campos de cada entrada:
 | `footprint {w,h}` | tiles que ocupa (como `w`/`h` del mapa) |
 | `anchor {x,y}` | (entidades que se mueven) pixel que va en la posición de la entidad |
 | `ride {x,y,rotate,flipX}` | dónde va el paciente acostado (ver abajo) |
+| `sit {x,y}` | (camas) centro del frame del paciente sentado (`wake`) |
+| `mattress {x,y,w,h}` | (camas) rectángulo del colchón: el paciente acostado queda dentro (lo verifica `TestPatientInsideMattress`) |
+| `cover {x,y,w,h}` | (camas) parte del sprite (la manta) que el renderer repinta **encima** del paciente para que quede tapado |
 | `tags` | `floor` (se ordena por Y con los personajes), `under` (pegado al piso, debajo de todo), `wall` (colgado en un muro), `ceiling` (encima de todo), `repeat` |
 | `source` | `propio`, el pack de origen u `override` |
 
 **Ride.** Para dibujar al paciente acostado (frame `stretcher` o `sleep`)
 sobre una cama, la camilla (`stretcher`) o la camilla robot (`robot`), el
-centro geométrico de su frame de 20×20 va en `(x, y)` del sprite del objeto,
-después de girarlo `rotate` grados en sentido horario y de reflejarlo si
-`flipX`:
+centro geométrico de su frame de 20×20 va en `(x, y)` del sprite del objeto.
+El frame sale de la fila `sleep` o `stretcher` de la dirección de la cama, así
+que desde la v2 `rotate` es 0 y `flipX` es `false` en todos (los campos se
+conservan por si un override los necesita):
 
 ```js
 ctx.translate(left + ride.x, top + ride.y);
@@ -198,7 +224,10 @@ ctx.drawImage(sheet, sx, sy, 20, 20, -10, -10, 20, 20);
 ```
 
 `preview.png` muestra el resultado con un paciente en cada cama, en la
-camilla y en el robot.
+camilla y en el robot, y sentado (`wake`) en cada cama. El renderer dibuja
+primero al paciente y después repinta `cover`. La cama horizontal ocupa todo
+el alto del tile (colchón de 14 px) porque el cuerpo acostado mide 14 px de
+ancho; la vertical mide 14 px de ancho y 23 de largo.
 
 **Entidades que se mueven** (fuera de `objects`):
 
@@ -230,8 +259,13 @@ nombre:
 | `HEDGE` | `seto` |
 | `WOOD` | `madera` |
 
-Otros tiles: `puerta` (de vidrio, cerrada), `tapete`, `vacio` y `mar` (2
-frames).
+| `SAND` | `playa`; el painter usa `playa-orilla` (arena mojada) si el tile de arriba es `SEA` |
+| `SEA` | `mar` (2 frames); el painter usa `mar-orilla` (2 frames, con espuma) si el tile de abajo no es mar |
+
+`SAND` y `SEA` (valores 13 y 14 de `TILE` en la rama del mapa) se leen de
+forma tolerante: si el mundo no los define, el painter no cambia nada.
+
+Otros tiles: `puerta` (de vidrio, cerrada), `tapete` y `vacio`.
 
 ## 5. Emotes y fuente
 
@@ -286,9 +320,10 @@ El PNG puede tener cualquier color: no hace falta que use la paleta.
 
 ## 7. Pendiente y límites conocidos
 
-- `attack`, `sleep`, `stretcher` y `wake` no tienen dirección: siempre miran
-  hacia abajo o van acostados con la cabeza a la izquierda. Para otras
-  orientaciones, el renderer gira el frame con `ride`.
+- `attack` y `wake` no tienen dirección: siempre miran hacia abajo (`attack`
+  cae con la cabeza a la izquierda). `sleep` y `stretcher` sí (la de la cama).
+- Sentado (`wake`) en una cama vertical, el paciente se dibuja de frente y de
+  pie sobre la cama, con la manta encima de las piernas.
 - `push`: de frente y de espaldas, las manos quedan tapadas por la camilla,
   así que es igual que `walk`; de perfil se ven las manos al frente.
 - `wake` "se estira" con un salto y el cuello estirado; no hay brazos
