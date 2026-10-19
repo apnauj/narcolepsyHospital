@@ -167,7 +167,7 @@ func decorCatalog() []decorDef {
 		{Key: "sink", Src: kenney(packIndoor, fileIndoor, [2]int{8, 13}), Tags: tFloor, Source: packIndoor},
 		{Key: "shelf", Src: kenney(packIndoor, fileIndoor, [2]int{5, 12}), Tags: tFloor, Source: packIndoor},
 		{Key: "linenCart", Src: grids("obj_linenCart"), Tags: tFloor, Source: "propio"},
-		{Key: "doorNumber", Src: grids("obj_doorNumber"), Origin: pt(-2, -3), Tags: tWall, Source: "propio"},
+		{Key: "doorNumber", Src: grids("obj_doorNumber"), Origin: pt(0, -3), Tags: tWall, Source: "propio"},
 		// Sala de espera.
 		{Key: "chair", Src: grids("obj_rimax"), Tags: tFloor, Source: "propio"},
 		{Key: "tv", Src: grids("obj_tv_0", "obj_tv_1", "obj_tv_2"), FPS: 3, Origin: pt(0, -2), Tags: tWall, Source: "propio"},

@@ -287,9 +287,15 @@ func (c *Composer) Frame(l *Layer, p Pose) (*Canvas, error) {
 	return c.fx(l, cv, p)
 }
 
+// BakeFX decide si los efectos («!», «z», estrellitas) van dibujados en la
+// hoja. Está apagado: de eso se encargan las partículas de web/js/fx, y
+// dibujarlos en las dos partes los duplicaría. Las grillas fx_* quedan por
+// si se quiere una versión sin fx/.
+const BakeFX = false
+
 // fx pinta el efecto de la pose, solo en la capa base.
 func (c *Composer) fx(l *Layer, cv *Canvas, p Pose) (*Canvas, error) {
-	if p.FX == "" || l.Category != "skin" {
+	if !BakeFX || p.FX == "" || l.Category != "skin" {
 		return cv, nil
 	}
 	g, err := c.need(p.FX)

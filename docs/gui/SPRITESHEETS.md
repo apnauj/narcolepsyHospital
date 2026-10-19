@@ -10,7 +10,7 @@ no requiere tocar código.
   se corre dos veces, `git status` queda limpio. Un test de Go
   (`TestGeneratedFilesUpToDate`) falla si lo que está en el repositorio no
   coincide con lo que genera.
-- Revisión humana: `web/assets/generated/preview.png`, una hoja de contacto
+- Revisión humana: `tools/spritegen/preview.png` (fuera de `web/`, así no se sirve ni se embebe), una hoja de contacto
   ampliada ×4 con todo el arte: personal, pacientes de muestra en todas las
   animaciones, pacientes acostados en camas, camilla y robot, objetos, tiles
   y emotes. El código no la usa.
@@ -78,9 +78,9 @@ Las celdas sobrantes de una fila quedan vacías.
 | 4–7 | `walk` | down, up, left, right | 4 | 8 | sí | parado, paso A con rebote de 1 px, parado, paso B |
 | 8–11 | `attend` | down, up, left, right | 3 | 3 | sí | agachado; mano al frente (con la bata, la campana del estetoscopio); asiente |
 | 12–15 | `push` | down, up, left, right | 4 | 8 | sí | camina con las manos al frente (de perfil se ven) |
-| 16 | `attack` | todas | 3 | 3 | no | "!" encima, tambaleo con estrellitas, caída (acostado) |
-| 17 | `sleep` | todas | 2 | 1.5 | sí | acostado, ojos cerrados, "z" que suben |
-| 18 | `stretcher` | todas | 1 | — | no | acostado sin "z" (encima de cama, camilla o robot) |
+| 16 | `attack` | todas | 3 | 3 | no | de pie, tambaleo, caída (acostado) |
+| 17 | `sleep` | todas | 2 | 1.5 | sí | acostado, ojos cerrados |
+| 18 | `stretcher` | todas | 1 | — | no | acostado (encima de cama, camilla o robot) |
 | 19 | `wake` | todas | 3 | 3 | no | se sienta con ojos cerrados, abre los ojos, se estira |
 
 En el manifest, `characters.animations[anim].rows[dir]` da la fila. Las
@@ -135,7 +135,10 @@ dibuja:
    delante de la camisa.
 
 Después refleja para `right`, desplaza (rebote, tambaleo) y, si la pose es
-acostada, gira 90° a la izquierda. Los efectos (`fx_*`) van solo en `skin`.
+acostada, gira 90° a la izquierda. Los efectos (`fx_*`: «!», «z», estrellitas) van solo en `skin`, pero están
+apagados (`BakeFX = false` en `character.go`): los dibujan las partículas de
+`web/js/fx`, y en la hoja se duplicarían. Por eso `attack` y `sleep` salen sin
+«!» ni «z».
 
 ## 3. Objetos y decoración
 
@@ -199,8 +202,8 @@ camilla y en el robot.
 
 **Entidades que se mueven** (fuera de `objects`):
 
-- `robot`: camilla robot de 26×15 con carita LED y sirena que alterna rojo y
-  azul (2 frames).
+- `robot`: camilla robot de 26×15 con carita LED (2 frames iguales). Sin
+  sirena: la dibuja `web/js/fx` cuando lleva a alguien.
 - `stretcher`: camilla de 20×16 que empuja el camillero.
 - `shadow`: sombra de 12×4 en tinta. El renderer la pinta semitransparente
   bajo los personajes.
