@@ -21,12 +21,14 @@ export function createConfigScene(_params, app) {
   let staffError = null;
   let saveBtn = null;
   let status = null;
+  let volumeText = null;
 
   function readForm() {
     const out = { ...draft };
     for (const f of NUMBER_FIELDS) out[f.key] = inputs[f.key].value;
     out.speed = Number(root.querySelector('input[name="speed"]:checked')?.value ?? draft.speed);
     out.showQueues = inputs.showQueues.checked;
+    out.volume = Number(inputs.volume.value) / 100;
     return out;
   }
 
@@ -34,6 +36,14 @@ export function createConfigScene(_params, app) {
     for (const f of NUMBER_FIELDS) inputs[f.key].value = String(cfg[f.key]);
     for (const radio of root.querySelectorAll('input[name="speed"]')) radio.checked = Number(radio.value) === cfg.speed;
     inputs.showQueues.checked = cfg.showQueues;
+    inputs.volume.value = String(Math.round((cfg.volume ?? 0) * 100));
+    showVolume();
+  }
+
+  // Texto junto al deslizador: «Silencio» o el porcentaje.
+  function showVolume() {
+    const n = Number(inputs.volume.value);
+    volumeText.textContent = n > 0 ? `${n} %` : "Silencio";
   }
 
   function revalidate() {
@@ -89,6 +99,18 @@ export function createConfigScene(_params, app) {
     mount(el) {
       root = el;
       inputs.showQueues = h("input", { type: "checkbox", id: "cfg-showQueues", onchange: revalidate });
+      volumeText = h("span", { class: "cfg-volume-value" });
+      inputs.volume = h("input", {
+        type: "range",
+        id: "cfg-volume",
+        min: 0,
+        max: 100,
+        step: 10,
+        oninput: () => {
+          showVolume();
+          revalidate();
+        },
+      });
       staffError = h("p", { class: "cfg-error", role: "alert" });
       status = h("p", { class: "cfg-status" });
       saveBtn = h("button", { type: "submit", class: "btn" }, "Guardar");
@@ -114,6 +136,7 @@ export function createConfigScene(_params, app) {
           ),
         ),
         h("div", { class: "cfg-row" }, h("label", { for: "cfg-showQueues", class: "cfg-check" }, inputs.showQueues, " Mostrar el panel de colas")),
+        h("div", { class: "cfg-row" }, h("label", { for: "cfg-volume" }, "Volumen de los sonidos"), h("span", {}, inputs.volume, " ", volumeText)),
         h(
           "div",
           { class: "cfg-actions" },
