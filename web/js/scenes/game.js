@@ -36,6 +36,7 @@ import { Card } from "../ui/card.js";
 import { Log } from "../ui/log.js";
 import { QueriesPanel } from "../ui/queries.js";
 import { Bubble, loadPhrases, pickPhrase } from "../ui/bubble.js";
+import { createFx } from "../fx/index.js";
 import { drawPlaceholder, pickPlaceholder, placeholderLayout } from "./placeholder.js";
 import { HOSPITAL_NAME } from "./menu.js";
 
@@ -347,6 +348,7 @@ export function createPlayScene(params = {}, app, { mode = "free" } = {}) {
       const d = dt * state.speed;
       state.time += d;
       stage.director?.update(d);
+      stage.fx?.update(d, stage.director);
       updateFollow(dt);
       for (const b of bubbles) b.update(d);
       bubbles = bubbles.filter((b) => !b.done);
@@ -371,7 +373,9 @@ export function createPlayScene(params = {}, app, { mode = "free" } = {}) {
     draw(ctx) {
       if (stage.world && stage.drawWorld) {
         stage.drawWorld(ctx, stage.world, stage.camera);
+        stage.fx?.drawWorldFx(ctx, stage.camera);
         stage.director?.draw(ctx, stage.camera, stage.renderer);
+        stage.fx?.drawEntityFx(ctx, stage.camera, stage.director);
       } else {
         drawPlaceholder(ctx, state.snapshot, layout, { selection: state.selection, t: state.time });
       }
@@ -399,6 +403,8 @@ export function createPlayScene(params = {}, app, { mode = "free" } = {}) {
           ui?.log.push(describeError(err));
         }
       }
+      // Efectos (fx/): Zzz, «!», decoración animada, sirena, frases y sonido.
+      stage.fx = stage.world && stage.director ? createFx(stage.world, { volume: app.config.volume ?? 0, phrases }) : null;
       stage.director?.sync(snapshot);
     },
 
@@ -411,6 +417,7 @@ export function createPlayScene(params = {}, app, { mode = "free" } = {}) {
           stage.director.apply(result.events ?? [], result.snapshot);
           followFrom(result.events ?? []);
         }
+        stage.fx?.onEvents(initial ? [] : (result.events ?? []), result.snapshot, stage.director);
       } else {
         layout = placeholderLayout(result.snapshot);
         for (const e of result.events ?? []) if (e.type === "patientWoke") wakeBubble(e.patient);
