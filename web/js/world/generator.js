@@ -10,7 +10,7 @@
 import { TILE, isWalkableTile } from "./tiles.js";
 import {
   Blueprint, buildCore, buildWing, buildTurn, buildCap,
-  WING_LENGTH, TURN_STRAIGHT, TURN_CORNER,
+  WING_LENGTH, TURN_STRAIGHT, TURN_CORNER, wallDecorSpan,
 } from "./modules.js";
 
 /** Nombres EXACTOS de hospital.Location para los pasillos de las alas, en orden. */
@@ -137,9 +137,61 @@ function finalize(bp) {
     spawn: pt(bp.spawn),
     robotBase: bp.robotBase.map(pt),
     staffRoom: { rect: rect(bp.staffRoom.rect) },
-    decor: [...bp.decor.map(pt), ...beach.decor],
+    // Primero se quitan los letreros amontonados y después se centran los que
+    // quedan: así el tramo de muro de cada uno ya no lo corta un vecino que
+    // iba a desaparecer. Centrar puede acercarlos, por eso se revisa otra vez.
+    decor: spaceSigns(centerSigns(spaceSigns([...bp.decor.map(pt), ...beach.decor]), get)),
     beach: beach.area,
   };
+}
+
+// Separación mínima entre letreros de «SE PROHÍBE DORMIR», en tiles: en el
+// mismo muro y en muros cercanos (los dos lados de un pasillo).
+export const SIGN_GAP_SAME_ROW = 10;
+export const SIGN_GAP_NEAR = 6;
+
+/**
+ * Centra cada letrero de «SE PROHÍBE DORMIR» en su tramo de muro liso: el
+ * muro a lo largo de su fila hasta la primera puerta, ventana u otro decor de
+ * muro. Así queda centrado aunque el tramo sea más largo de lo previsto (p. ej.
+ * cuando el ala sigue con un codo en vez de con otra ala). `get(tx, ty)` da el
+ * tile en coordenadas finales.
+ */
+export function centerSigns(decor, get) {
+  const wallDecor = decor.filter((d) => d.facing);
+  const taken = (tx, ty, self) =>
+    wallDecor.some((d) => d !== self && d.ty === ty && tx >= d.tx + wallDecorSpan(d)[0] && tx <= d.tx + wallDecorSpan(d)[1]);
+  const free = (tx, ty, self) => get(tx, ty) === TILE.WALL && !taken(tx, ty, self);
+  return decor.map((d) => {
+    if (d.kind !== "noSleepSign") return d;
+    const [l, r] = wallDecorSpan(d);
+    let from = d.tx + l;
+    let to = d.tx + r;
+    while (free(from - 1, d.ty, d)) from--;
+    while (free(to + 1, d.ty, d)) to++;
+    // Ancla tal que el letrero quede en el medio del tramo [from, to].
+    const tx = Math.floor((from + to - l - r) / 2);
+    return tx === d.tx ? d : { ...d, tx };
+  });
+}
+
+/**
+ * Quita los letreros de «SE PROHÍBE DORMIR» que quedan muy cerca de otro ya
+ * puesto (p. ej. el del codo de una L junto al de la última ala recta). Se
+ * conservan en el orden en que los pusieron los módulos.
+ */
+export function spaceSigns(decor) {
+  const kept = [];
+  return decor.filter((d) => {
+    if (d.kind !== "noSleepSign") return true;
+    const crowded = kept.some((k) => {
+      const dx = Math.abs(k.tx - d.tx);
+      const dy = Math.abs(k.ty - d.ty);
+      return (dy === 0 && dx < SIGN_GAP_SAME_ROW) || Math.max(dx, dy) < SIGN_GAP_NEAR;
+    });
+    if (!crowded) kept.push(d);
+    return !crowded;
+  });
 }
 
 /** true si el tile (tx, ty) cae dentro del rectángulo {tx, ty, w, h}. */

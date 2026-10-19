@@ -142,11 +142,11 @@ export class Blueprint {
 // ---------------------------------------------------------------------------
 // Ancho real de la decoración de muro, en tiles a lo largo del muro, relativo
 // al tile de anclaje: [izquierda, derecha]. Sale de frame.w y origin.x de
-// web/assets/sprites.json (noSleepSign: 75 px con origin 29 cubre tx-2..tx+2).
+// web/assets/sprites.json (noSleepSign: 47 px con origin 15 cubre tx-1..tx+1).
 // Lo que no está aquí ocupa solo su tile; si el decor trae `w`, cubre [0, w-1].
 
 export const WALL_DECOR_SPAN = Object.freeze({
-  noSleepSign: Object.freeze([-2, 2]),
+  noSleepSign: Object.freeze([-1, 1]),
   receptionSign: Object.freeze([-1, 1]),
   menuBoard: Object.freeze([-1, 1]),
 });
@@ -323,7 +323,8 @@ export function buildCore(bp) {
   bp.addPoi(1, 11, "window");
   for (const x of [6, 16, 25]) bp.addDecor(x, 11, "fan");
   bp.wallDecor(11, 9, "extinguisher", "down");
-  bp.wallDecor(19, 9, "noSleepSign", "down", { label: "SE PROHÍBE DORMIR EN EL PASILLO" });
+  // Centrado en el tramo de muro liso entre el extintor y la puerta de la sala de personal.
+  bp.wallDecor(18, 9, "noSleepSign", "down", { label: "SE PROHÍBE DORMIR" });
   bp.wallDecor(16, 13, "water", "up");
   bp.addPoi(16, 12, "water");
   bp.addDecor(18, 12, "bench", { w: 2 });
@@ -443,15 +444,15 @@ export function buildWing(bp, fr, a0, spec) {
     else buildPatientRoom(bp, fr, a0, s, side.number);
   }
 
-  // Decoración del pasillo. El letrero mide 5 tiles (ver WALL_DECOR_SPAN): cabe
-  // entre la placa de una puerta y la del ala siguiente (a0+4..a0+8), así que
-  // va en a0+6 de un lado; agua y extintor van en el lado contrario. Solo en
+  // Decoración del pasillo. El letrero mide 3 tiles (ver WALL_DECOR_SPAN): va
+  // centrado en el muro liso entre la puerta y la placa del ala siguiente
+  // (a0+4..a0+8), en a0+6 de un lado, con un tile libre a cada lado; agua y extintor van en el lado contrario. Solo en
   // muros horizontales (el sprite es horizontal) y no en la última ala, que
   // no tiene a0+8. El ala anterior ocupa a0+1 del lado del letrero opuesto.
   L.decor(bp, fr, a0 + 3, 0, "fan");
   const signSide = spec.index % 2 === 0 ? -2 : 2;
   if ((fr.dir === "E" || fr.dir === "W") && !spec.last) {
-    L.wall(bp, fr, a0 + 6, signSide, "noSleepSign", { label: "SE PROHÍBE DORMIR EN EL PASILLO" });
+    L.wall(bp, fr, a0 + 6, signSide, "noSleepSign", { label: "SE PROHÍBE DORMIR" });
   }
   const other = -signSide;
   L.wall(bp, fr, a0 + 6, other, "extinguisher");
@@ -497,7 +498,7 @@ export function buildTurn(bp, fr, aEnd) {
   L.decor(bp, fr, aEnd + 2, -1, "bench");
   L.poi(bp, fr, aEnd + 2, -1, "bench");
   if (fr.dir === "E" || fr.dir === "W") {
-    L.wall(bp, fr, aEnd + 4, -2, "noSleepSign", { label: "SE PROHÍBE DORMIR EN EL PASILLO" });
+    L.wall(bp, fr, aEnd + 4, -2, "noSleepSign", { label: "SE PROHÍBE DORMIR" });
   }
   L.furniture(bp, fr, aEnd + 6, -1, "plant");
 

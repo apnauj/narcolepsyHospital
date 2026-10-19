@@ -185,8 +185,8 @@ Kinds cubiertos (un test de Go lo exige): `bed`, `bell`, `bench`, `board`,
 renderer con la fuente), `doormat`, `extinguisher`, `fan` (ventilador de
 techo, 3 frames), `flowers`, `fridge`, `gate`, `glassDoor`, `hammock`,
 `linenCart`, `locker`, `menuBoard`, `monitor` (3 frames con la línea
-corriendo), `mural`, `nightstand`, `noSleepSign` ("SE PROHÍBE DORMIR EN EL
-PASILLO"), `palm`, `pico` (2 frames), `plant`, `receptionSign`, `rug`
+corriendo), `mural`, `nightstand`, `noSleepSign` ("SE PROHÍBE
+DORMIR", 47×18, menos de 3 tiles), `palm`, `pico` (2 frames), `plant`, `receptionSign`, `rug`
 (tapete wayuu), `shelf`, `sign` (letrero de la entrada: "HOSPITAL DE LOS
 COSTEÑOS CON NARCOLEPSIA"), `sink`, `table`, `toilet`, `toolShelf`, `tv`
 (partido, 3 frames), `water`, `workbench`. Extras que el mapa aún no pide:
