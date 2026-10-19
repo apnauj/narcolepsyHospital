@@ -31,6 +31,9 @@ const PORTRAIT = 20;
 const LYING = new Set(["sleep", "stretcher"]);
 // Animaciones que, en una cama, se dibujan con el ride de la cama.
 const IN_BED = new Set(["sleep", "wake"]);
+// Distancia máxima (px) entre el paciente y el centro de una cama para
+// considerarlo acostado en ella.
+const BED_SNAP = 6;
 
 // Dirección de la fila acostada para quien duerme en el suelo.
 function floorLie(dir) {
@@ -81,6 +84,21 @@ export class SpriteRenderer {
     }
   }
 
+  /**
+   * Cama en la que está acostado quien está en (wx, wy), en px de MUNDO.
+   * Se busca por el mundo y no por la pantalla: (sx, sy) cambia con la
+   * cámara y solo coincidiría con la cama con la cámara en el origen.
+   */
+  bedAt(wx, wy) {
+    const exact = this.beds.get(`${Math.round(wx)},${Math.round(wy)}`);
+    if (exact) return exact;
+    for (const [key, bed] of this.beds) {
+      const [bx, by] = key.split(",").map(Number);
+      if (Math.abs(bx - wx) <= BED_SNAP && Math.abs(by - wy) <= BED_SNAP) return bed;
+    }
+    return null;
+  }
+
   /** Capas del personaje (cacheadas por tipo e ID). */
   layersOf(kind, id) {
     const key = `${kind}:${id}`;
@@ -126,7 +144,7 @@ export class SpriteRenderer {
 
     if (e.kind === "patient" && e.carriedBy) {
       this.drawCarried(ctx, e, layers, rect, cx, cy);
-    } else if (e.kind === "patient" && IN_BED.has(anim) && this.beds.has(`${cx},${cy}`)) {
+    } else if (e.kind === "patient" && IN_BED.has(anim) && this.bedAt(e.x, e.y)) {
       this.drawInBed(ctx, e, anim, layers, cx, cy);
     } else {
       this.drawShadow(ctx, bx, by, 1);
@@ -145,9 +163,12 @@ export class SpriteRenderer {
    * Al final repinta la manta (`cover`) encima del paciente.
    */
   drawInBed(ctx, e, anim, layers, cx, cy) {
-    const { decor, sprite } = this.beds.get(`${cx},${cy}`);
-    const left = decor.tx * 16 - sprite.origin.x;
-    const top = decor.ty * 16 - sprite.origin.y;
+    const { decor, sprite } = this.bedAt(e.x, e.y);
+    // La cama está en px de mundo; (cx, cy) es el paciente en pantalla.
+    const ox = cx - Math.round(e.x);
+    const oy = cy - Math.round(e.y);
+    const left = decor.tx * 16 - sprite.origin.x + ox;
+    const top = decor.ty * 16 - sprite.origin.y + oy;
     const dir = decor.dir ?? "down";
     const frame = animFrame(this.art, anim, e.animTime ?? 0);
     if (LYING.has(anim)) {

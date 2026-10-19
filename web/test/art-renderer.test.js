@@ -76,7 +76,7 @@ test("paciente dormido en cama: fila de la dirección, sin girar y dentro del co
     const r = new SpriteRenderer(art, { world: { decor: [decor] } });
     const bed = objectFor(art, decor);
     const ctx = fakeCtx();
-    r.drawEntity(ctx, entity({ anim: "sleep" }), cx, cy);
+    r.drawEntity(ctx, entity({ anim: "sleep", x: cx, y: cy }), cx, cy);
     assert.ok(!ctx.calls.some((c) => c.path === shadowPath), `${dir}: en cama no hay sombra`);
     const c = ctx.calls[0];
     // Usa la fila acostada de esa dirección y no gira ni refleja el canvas.
@@ -100,6 +100,21 @@ test("paciente dormido en cama: fila de la dirección, sin girar y dentro del co
   }
 });
 
+test("la cama se busca por la posición en el mundo, aunque la cámara esté corrida", () => {
+  // Con la cámara corrida, (sx, sy) en pantalla no es el centro de la cama
+  // en el mundo: el paciente tiene que seguir acostado en ella.
+  const { decor, cx, cy } = bedCase("down");
+  const r = new SpriteRenderer(art, { world: { decor: [decor] } });
+  const bed = objectFor(art, decor);
+  const ctx = fakeCtx();
+  const [camX, camY] = [137, 59];
+  r.drawEntity(ctx, entity({ anim: "sleep", x: cx, y: cy }), cx - camX, cy - camY);
+  const c = ctx.calls[0];
+  assert.equal(c.sy, manifest.characters.animations.sleep.rows.down * manifest.characters.frame.h);
+  assert.equal(c.m.tx, decor.tx * 16 - bed.origin.x + bed.ride.x - camX);
+  assert.equal(c.m.ty, decor.ty * 16 - bed.origin.y + bed.ride.y - camY);
+});
+
 test("las camas verticales usan frames acostados distintos (cabeza arriba / abajo)", () => {
   const rows = manifest.characters.animations.sleep.rows;
   assert.equal(new Set([rows.right, rows.left, rows.down, rows.up]).size, 4);
@@ -114,7 +129,7 @@ test("despertando en cama: sentado (fila wake), sin girar, dentro de la cama", (
     const r = new SpriteRenderer(art, { world: { decor: [decor] } });
     const bed = objectFor(art, decor);
     const ctx = fakeCtx();
-    r.drawEntity(ctx, entity({ anim: "wake", animTime: 0 }), cx, cy);
+    r.drawEntity(ctx, entity({ anim: "wake", animTime: 0, x: cx, y: cy }), cx, cy);
     const c = ctx.calls[0];
     assert.equal(c.sy, manifest.characters.animations.wake.rows.down * manifest.characters.frame.h);
     assert.equal(c.m.rot, 0);
