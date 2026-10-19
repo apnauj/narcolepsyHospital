@@ -39,6 +39,8 @@ El paquete `hospital` no cambió para la interfaz y no sabe que existe:
 
 Pruebas del frontend: `cd web && node --test "test/*.test.js"` (Node 22).
 
+**Arte.** Los personajes (por capas: piel, ropa, peinado o vueltiao, accesorios), las camas, el monitor, la silla Rimax, el picó, la camilla robot y los letreros son propios. Los genera `go run ./tools/spritegen` a partir de grillas de texto en `tools/spritegen/src/`. Muebles y plantas vienen de packs de Kenney, los emotes de Ninja Adventure (Pixel-boy y AAA) y la fuente es Public Pixel (GGBotNet). Todo eso es CC0 y está detallado en `web/assets/LICENSES.md`. El formato de las hojas de sprites está en `docs/gui/SPRITESHEETS.md`.
+
 ## Estructura
 
 ```
@@ -48,6 +50,7 @@ demo/          datos del escenario, compartidos por la consola y la interfaz gr�
 api/           API REST de la interfaz gráfica (adaptador sobre hospital)
 cmd/gui/       servidor de la interfaz gráfica
 web/           frontend: mapa, entidades animadas, paneles (JS sin dependencias)
+tools/spritegen/ generador de los sprites propios (solo biblioteca estándar)
 hospital/      modelo: no imprime nada ni sabe nada de la interfaz
   person.go            Person: identidad embebida en Patient, Doctor y Orderly
   patient.go           Patient y sus estados (PatientState, NarcolepsyLevel)
