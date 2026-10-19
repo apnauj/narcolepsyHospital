@@ -59,29 +59,78 @@ test("cambia de frame con animTime y respeta dir", () => {
   assert.equal(src(entity({ anim: "walk", animTime: 0.5 })).sx, a.sx);
 });
 
-test("el paciente dormido en una cama usa el ride de la cama", () => {
-  const decor = { tx: 5, ty: 3, kind: "bed", dir: "right", under: 11 };
-  const world = { decor: [decor] };
-  const r = new SpriteRenderer(art, { world });
-  const bed = objectFor(art, decor);
+// Camas de prueba: la cabecera (decor) en (hx, hy) y los pies hacia `dir`.
+const VEC = { right: [1, 0], left: [-1, 0], down: [0, 1], up: [0, -1] };
+function bedCase(dir) {
+  const decor = { tx: 6, ty: 6, kind: "bed", dir, under: 11 };
+  const [vx, vy] = VEC[dir];
+  // Centro de la cama: entre la cabecera y los pies.
+  return { decor, cx: 6 * 16 + 8 + vx * 8, cy: 6 * 16 + 8 + vy * 8 };
+}
+
+test("paciente dormido en cama: fila de la dirección, sin girar y dentro del colchón", () => {
+  const sleep = manifest.characters.animations.sleep;
+  const h = manifest.characters.frame.h;
+  for (const dir of ["right", "left", "down", "up"]) {
+    const { decor, cx, cy } = bedCase(dir);
+    const r = new SpriteRenderer(art, { world: { decor: [decor] } });
+    const bed = objectFor(art, decor);
+    const ctx = fakeCtx();
+    r.drawEntity(ctx, entity({ anim: "sleep" }), cx, cy);
+    assert.ok(!ctx.calls.some((c) => c.path === shadowPath), `${dir}: en cama no hay sombra`);
+    const c = ctx.calls[0];
+    // Usa la fila acostada de esa dirección y no gira ni refleja el canvas.
+    assert.equal(c.sy, sleep.rows[dir] * h, `${dir}: fila`);
+    assert.equal(c.m.rot, 0, `${dir}: sin giro`);
+    assert.equal(c.m.sx, 1, `${dir}: sin reflejo`);
+    // El frame de 20x20 va centrado en el ride de la cama.
+    const left = decor.tx * 16 - bed.origin.x;
+    const top = decor.ty * 16 - bed.origin.y;
+    assert.equal(c.m.tx, left + bed.ride.x, `${dir}: x`);
+    assert.equal(c.m.ty, top + bed.ride.y, `${dir}: y`);
+    // El centro del paciente cae dentro del rectángulo del colchón.
+    const m = bed.mattress;
+    assert.ok(bed.ride.x > m.x && bed.ride.x < m.x + m.w, `${dir}: centro x en el colchón`);
+    assert.ok(bed.ride.y > m.y && bed.ride.y < m.y + m.h, `${dir}: centro y en el colchón`);
+    // Al final se repinta la manta de la cama encima del paciente.
+    const last = ctx.calls[ctx.calls.length - 1];
+    assert.equal(last.path, bed.sheet, `${dir}: manta encima`);
+    assert.equal(last.dx, left + bed.cover.x);
+    assert.equal(last.dy, top + bed.cover.y);
+  }
+});
+
+test("las camas verticales usan frames acostados distintos (cabeza arriba / abajo)", () => {
+  const rows = manifest.characters.animations.sleep.rows;
+  assert.equal(new Set([rows.right, rows.left, rows.down, rows.up]).size, 4);
+  const stretch = manifest.characters.animations.stretcher.rows;
+  assert.equal(new Set([stretch.right, stretch.left, stretch.down, stretch.up]).size, 4);
+  for (const dir of ["down", "up"]) assert.equal(objectFor(art, { kind: "bed", dir }).ride.rotate, 0);
+});
+
+test("despertando en cama: sentado (fila wake), sin girar, dentro de la cama", () => {
+  for (const dir of ["right", "left", "down", "up"]) {
+    const { decor, cx, cy } = bedCase(dir);
+    const r = new SpriteRenderer(art, { world: { decor: [decor] } });
+    const bed = objectFor(art, decor);
+    const ctx = fakeCtx();
+    r.drawEntity(ctx, entity({ anim: "wake", animTime: 0 }), cx, cy);
+    const c = ctx.calls[0];
+    assert.equal(c.sy, manifest.characters.animations.wake.rows.down * manifest.characters.frame.h);
+    assert.equal(c.m.rot, 0);
+    assert.equal(c.m.sx, 1);
+    assert.equal(c.m.tx, decor.tx * 16 - bed.origin.x + bed.sit.x, dir);
+    const m = bed.mattress;
+    assert.ok(bed.sit.x > m.x && bed.sit.x < m.x + m.w);
+  }
+});
+
+test("dormido fuera de cama: acostado en el suelo con sombra", () => {
+  const r = new SpriteRenderer(art);
   const ctx = fakeCtx();
-  // Centro de la cama: cabecera (5,3) y pies a la derecha.
-  r.drawEntity(ctx, entity({ anim: "sleep" }), 5 * 16 + 16, 3 * 16 + 8);
-  assert.ok(!ctx.calls.some((c) => c.path === shadowPath), "en cama no hay sombra");
-  const c = ctx.calls[0];
-  assert.equal(c.m.tx, decor.tx * 16 - bed.origin.x + bed.ride.x);
-  assert.equal(c.m.ty, decor.ty * 16 - bed.origin.y + bed.ride.y);
-  // bed:left refleja al paciente.
-  const left = { tx: 8, ty: 3, kind: "bed", dir: "left" };
-  r.setWorld({ decor: [left] });
-  const ctx2 = fakeCtx();
-  r.drawEntity(ctx2, entity({ anim: "sleep" }), 8 * 16, 3 * 16 + 8);
-  assert.equal(ctx2.calls[0].m.sx, -1);
-  // Una cama de pie vertical gira 90 grados.
-  r.setWorld({ decor: [{ tx: 2, ty: 2, kind: "bed", dir: "down" }] });
-  const ctx3 = fakeCtx();
-  r.drawEntity(ctx3, entity({ anim: "sleep" }), 2 * 16 + 8, 2 * 16 + 16);
-  assert.ok(Math.abs(ctx3.calls[0].m.rot - Math.PI / 2) < 1e-9);
+  r.drawEntity(ctx, entity({ anim: "sleep", dir: "right" }), 50, 50);
+  assert.equal(ctx.calls[0].path, shadowPath);
+  assert.equal(ctx.calls[1].sy, manifest.characters.animations.sleep.rows.left * manifest.characters.frame.h);
 });
 
 test("el robot dibuja su hoja sin sirena y el paciente cargado va sobre su ride", () => {

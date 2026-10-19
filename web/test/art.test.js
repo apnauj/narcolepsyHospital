@@ -146,7 +146,8 @@ test("ayudas de frames y búsqueda de sprites", () => {
   const fw = manifest.characters.frame.w;
   const walkLeft = characterFrame(art, "walk", "left", 2);
   assert.deepEqual(walkLeft, { sx: 2 * fw, sy: manifest.characters.animations.walk.rows.left * manifest.characters.frame.h, sw: fw, sh: manifest.characters.frame.h });
-  assert.equal(characterFrame(art, "sleep", "up", 0).sy, characterFrame(art, "sleep", "down", 0).sy);
+  assert.notEqual(characterFrame(art, "sleep", "up", 0).sy, characterFrame(art, "sleep", "down", 0).sy);
+  assert.equal(characterFrame(art, "wake", "up", 0).sy, characterFrame(art, "wake", "down", 0).sy);
   assert.equal(animFrame(art, "walk", 0), 0);
   const walk = manifest.characters.animations.walk;
   assert.equal(animFrame(art, "walk", (walk.frames + 1) / walk.fps), 1);
@@ -163,4 +164,19 @@ test("ayudas de frames y búsqueda de sprites", () => {
   assert.equal(tileFor(art, "NADA"), null);
   assert.equal(emoteFrame(art, "alert").sx, manifest.emotes.names.alert * 16);
   assert.throws(() => emoteFrame(art, "nada"));
+});
+
+test("la camiseta de la Selección sale en 1 de cada 5 pacientes, determinista por ID", () => {
+  const art = makeArt(manifest);
+  const sel = art.characters.layers.torso.findIndex((l) => l.id === "seleccion");
+  assert.ok(sel >= 0);
+  assert.ok(art.characters.layers.torso[sel].sheet);
+  let n = 0;
+  const total = 2000;
+  for (let i = 0; i < total; i++) {
+    const a = appearanceFor(`P-${i}`, art);
+    if (a.torso === sel) n++;
+    assert.equal(appearanceFor(`P-${i}`, art).torso, a.torso);
+  }
+  assert.ok(n / total > 0.15 && n / total < 0.25, `proporción ${n / total}`);
 });

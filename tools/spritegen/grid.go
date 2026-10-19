@@ -269,3 +269,8 @@ func (c *Canvas) FlipV() *Canvas {
 func (c *Canvas) RotateCW() *Canvas {
 	return c.RotateCCW().RotateCCW().RotateCCW()
 }
+
+// Rotate180 gira 180°.
+func (c *Canvas) Rotate180() *Canvas {
+	return c.RotateCCW().RotateCCW()
+}
