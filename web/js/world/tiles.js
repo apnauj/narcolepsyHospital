@@ -21,10 +21,12 @@ export const TILE = Object.freeze({
   HEDGE: 10,      // seto que cierra la entrada
   ROOM_FLOOR: 11, // piso de habitación
   WOOD: 12,       // piso de madera clara (cafetería, sala de personal)
+  SAND: 13,       // arena de la playa norte; se camina
+  SEA: 14,        // mar; no se camina
 });
 
 const WALKABLE = new Set([
-  TILE.FLOOR, TILE.DOOR, TILE.GRASS, TILE.PATH, TILE.ROOM_FLOOR, TILE.WOOD,
+  TILE.FLOOR, TILE.DOOR, TILE.GRASS, TILE.PATH, TILE.ROOM_FLOOR, TILE.WOOD, TILE.SAND,
 ]);
 
 const WALL_LIKE = new Set([TILE.WALL, TILE.WINDOW, TILE.DOOR]);
