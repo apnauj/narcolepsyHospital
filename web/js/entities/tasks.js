@@ -62,7 +62,7 @@ export function runTasks(e, d, dt) {
     if (e.task !== t) continue; // la tarea cambió la secuencia
     if (!done) return;
     e.task = null;
-    dt = 0; // lo que sigue en este cuadro no consume tiempo
+    if (t.update) dt = 0; // si gastó tiempo, lo que sigue espera al próximo cuadro
   }
 }
 
