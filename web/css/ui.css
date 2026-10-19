@@ -123,10 +123,46 @@
 
 .btn-small { padding: 2px 8px; min-width: 32px; }
 
-/* Botón grande del menú, con el cursor ▶ de los juegos de antes. */
-.btn-big { font-size: 8px; padding: 10px 18px 10px 26px; position: relative; text-align: left; }
-.btn-big::before { content: "▶"; position: absolute; left: 8px; opacity: 0; }
-.btn-big:hover::before, .btn-big:focus-visible::before { opacity: 1; }
+/* Botón grande del menú: caja de borde doble con el cursor ▶ parpadeante.
+   PixelFont solo a 16 px (24 px en pantallas anchas). */
+.btn-big {
+  display: block;
+  width: 100%;
+  font-family: "PixelFont", monospace;
+  font-size: 16px;
+  line-height: 1.4;
+  padding: 14px 20px 14px 52px;
+  border: 6px double var(--ink);
+  border-radius: 4px;
+  box-shadow: 4px 4px 0 var(--shadow);
+  position: relative;
+  text-align: left;
+  transition: none;
+}
+.btn-big::before {
+  content: "";
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  margin-top: -10px;
+  border-left: 16px solid var(--junior-red);
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  opacity: 0;
+}
+.btn-big:hover, .btn-big:focus {
+  background: var(--sun);
+  outline: 4px solid #fff;
+  outline-offset: 2px;
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--shadow);
+}
+.btn-big:hover::before, .btn-big:focus::before { opacity: 1; animation: blink 0.6s steps(2) infinite; }
+.btn-big:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--shadow); }
+
+/* Botón de música (♪ / ✕): fuente normal, los glifos no están en PixelFont. */
+.btn-music { font-family: monospace; font-size: 16px; line-height: 1; min-width: 40px; padding: 4px 8px; }
+.btn-music.muted { color: var(--junior-red); }
 
 /* ---------- Menú y configuración ---------- */
 
@@ -143,16 +179,83 @@
 .menu-center { justify-content: center; }
 
 .menu-title {
-  font-size: 16px;
+  font-size: 32px;
+  line-height: 1.4;
   text-align: center;
-  max-width: 92%;
+  text-wrap: balance;
+  max-width: 100%;
+  margin: 0;
 }
 
-.menu-buttons {
+/* Menú principal: título arriba, botones a la izquierda sobre el mar y la
+   arena a la derecha queda el hospital. Todo en el HUD de tamaño del canvas. */
+.menu-main { display: block; position: relative; padding: 0; }
+.menu-top {
+  position: absolute;
+  top: 2%;
+  left: 0;
+  right: 0;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.menu-top .menu-title { max-width: 72%; }
+.menu-sub {
+  margin: 0;
+  font-family: "PixelFont", monospace;
+  font-size: 16px;
+  line-height: 1.4;
+  color: #fff;
+  background: var(--ink);
+  border: 3px solid var(--shadow);
+  padding: 6px 12px;
+  text-align: center;
+}
+.menu-buttons {
+  position: absolute;
+  left: 3%;
+  top: 29%;
+  width: max-content;
+  max-width: 44%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.menu-mute { position: absolute; top: 12px; right: 12px; }
+.menu-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8px;
+  margin: 0;
+  text-align: center;
+  font-family: "PixelFont", monospace;
+  font-size: 8px;
+  color: #fff;
+  width: max-content;
+  margin: 0 auto;
+  padding: 4px 8px;
+  background: var(--ink);
+  animation: blink 1.2s steps(2) infinite;
+}
+
+@media (min-width: 1600px) and (min-height: 900px) {
+  .btn-big { font-size: 24px; padding: 18px 24px 18px 64px; }
+  .btn-big::before { left: 20px; margin-top: -12px; border-left-width: 20px; border-top-width: 12px; border-bottom-width: 12px; }
+  .menu-sub { font-size: 24px; }
+  .menu-hint { font-size: 16px; }
+  .btn-music { font-size: 24px; min-width: 52px; }
+}
+@media (max-width: 1099px) {
+  .menu-title { font-size: 24px; }
+}
+@media (max-width: 800px) {
+  .menu-title { font-size: 16px; }
+  .btn-big { font-size: 8px; padding: 8px 12px 8px 28px; border-width: 4px; }
+  .btn-big::before { left: 8px; margin-top: -5px; border-left-width: 8px; border-top-width: 5px; border-bottom-width: 5px; }
+  .menu-sub { font-size: 8px; }
+  .menu-buttons { gap: 8px; }
 }
 
 .config { width: min(560px, 100%); }
@@ -319,3 +422,9 @@
     grid-template-areas: "banner" "map" "tools" "log" "side";
   }
 }
+
+/* Barra de acciones compacta: con la música son 11 botones y en pantallas
+   medianas tienen que caber en dos filas. */
+.toolbar { gap: 6px; }
+.toolbar .btn { padding: 4px 8px; font-size: 12px; }
+.toolbar .btn-music { font-size: 14px; min-width: 32px; padding: 3px 6px; }

@@ -26,6 +26,9 @@ var tileDefs = []tileDef{
 	{"tapete", []string{"tile_tapete"}, 0},
 	{"vacio", []string{"tile_vacio"}, 0},
 	{"mar", []string{"tile_mar_0", "tile_mar_1"}, 1},
+	{"playa", []string{"tile_playa"}, 0},
+	{"playa-orilla", []string{"tile_playa_orilla"}, 0},
+	{"mar-orilla", []string{"tile_mar_orilla_0", "tile_mar_orilla_1"}, 1},
 }
 
 // TileByType: qué tile usar para cada valor de TILE de
@@ -46,6 +49,10 @@ var TileByType = map[string]string{
 	"HEDGE":      "seto",
 	"ROOM_FLOOR": "piso-menta",
 	"WOOD":       "madera",
+	// v2: el painter usa "mar-orilla" si el tile de abajo no es mar y
+	// "playa-orilla" si el de arriba es mar.
+	"SAND": "playa",
+	"SEA":  "mar",
 }
 
 const tileCols = 8

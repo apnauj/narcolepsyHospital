@@ -15,6 +15,7 @@ import { Camera, TILE_SIZE, attachCameraControls, generateWorld } from "./world/
 import { Director } from "./entities/index.js";
 import { loadPhrases } from "./ui/bubble.js";
 import { createStageArt } from "./art/stage.js";
+import { initMusic } from "./ui/music.js";
 
 const appEl = document.getElementById("app");
 const canvas = document.getElementById("screen");
@@ -67,13 +68,17 @@ async function buildStage(snapshot, config) {
 
 // Estado compartido entre escenas. La configuración vive en memoria aunque
 // localStorage no exista; saveConfig solo intenta persistirla.
+const loadedConfig = loadConfig();
 const app = {
   canvas,
-  config: loadConfig(),
+  config: loadedConfig,
   showScene,
+  // Música de fondo única: suena en todas las escenas (ver ui/music.js).
+  music: initMusic({ volume: loadedConfig.musicVolume }),
   setConfig(config) {
     app.config = { ...config };
     saveConfig(app.config);
+    app.music.setVolume(app.config.musicVolume);
   },
 };
 

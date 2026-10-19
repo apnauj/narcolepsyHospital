@@ -49,6 +49,15 @@ export const FLAT_COLORS = Object.freeze({
   terracotta: "#c4643a",
   steel: "#9aa5ad",
   dark: "#22303c",
+  sand: "#f2dca0",
+  sandDark: "#dcc07a",
+  sea: "#2f80c2",
+  seaLight: "#5db4e8",
+  seaFoam: "#d8f3ff",
+  pitch: "#4fa83c",
+  pitchLine: "#ffffff",
+  beer: "#f7c948",
+  potato: "#e8b04a",
 });
 
 const C = FLAT_COLORS;
@@ -137,6 +146,19 @@ export function flatPainter(ctx, tile, x, y, tx, ty) {
       rect(ctx, C.furnitureDark, x + 1, y + 1, S - 2, S - 2);
       rect(ctx, C.furniture, x + 2, y + 2, S - 4, S - 5);
       break;
+    case TILE.SAND: {
+      rect(ctx, C.sand, x, y, S, S);
+      const h = hash(tx, ty);
+      if (h % 4 === 0) rect(ctx, C.sandDark, x + (h % 12), y + ((h >> 4) % 12), 2, 1);
+      break;
+    }
+    case TILE.SEA: {
+      rect(ctx, C.sea, x, y, S, S);
+      const h = hash(tx, ty);
+      rect(ctx, C.seaLight, x + (h % 8), y + 4 + ((h >> 3) % 6), 5, 1);
+      if (ty >= 0 && h % 3 === 0) rect(ctx, C.seaFoam, x + ((h >> 5) % 9), y + 12, 4, 1);
+      break;
+    }
     case TILE.COUNTER:
       rect(ctx, C.counterFront, x, y, S, S);
       rect(ctx, C.counter, x, y, S, S - 5);
@@ -354,6 +376,43 @@ const DECOR = {
   doorNumber(ctx, x, y, d) {
     rect(ctx, C.white, x + 1, y + 4, 14, 8);
     drawNumber(ctx, d.label ?? "", x + 2, y + 6, C.outline);
+  },
+  // Playa, cancha y comida.
+  umbrella(ctx, x, y) {
+    rect(ctx, C.trunk, x + 7, y + 6, 2, 9);
+    rect(ctx, C.red, x + 1, y + 2, 14, 4);
+    rect(ctx, C.white, x + 5, y + 2, 3, 4);
+  },
+  shell(ctx, x, y) {
+    rect(ctx, C.white, x + 6, y + 8, 4, 3);
+    rect(ctx, C.terracotta, x + 7, y + 9, 2, 1);
+  },
+  cancha(ctx, x, y, d) {
+    const w = (d.w ?? 8) * S;
+    const h = (d.h ?? 5) * S;
+    rect(ctx, C.pitch, x, y, w, h);
+    rect(ctx, C.pitchLine, x + 2, y + 2, w - 4, 1);
+    rect(ctx, C.pitchLine, x + 2, y + h - 3, w - 4, 1);
+    rect(ctx, C.pitchLine, x + 2, y + 2, 1, h - 4);
+    rect(ctx, C.pitchLine, x + w - 3, y + 2, 1, h - 4);
+    rect(ctx, C.pitchLine, x + w / 2, y + 2, 1, h - 4);
+    rect(ctx, C.pitchLine, x + w / 2 - 3, y + h / 2 - 3, 7, 7);
+    rect(ctx, C.pitch, x + w / 2 - 2, y + h / 2 - 2, 5, 5);
+  },
+  salchipapas(ctx, x, y) {
+    rect(ctx, C.white, x + 3, y + 8, 10, 4);
+    rect(ctx, C.potato, x + 4, y + 5, 8, 3);
+    rect(ctx, C.red, x + 6, y + 4, 4, 2);
+  },
+  cervezaAguila(ctx, x, y) {
+    rect(ctx, C.beer, x + 6, y + 6, 4, 7);
+    rect(ctx, C.red, x + 6, y + 9, 4, 2);
+    rect(ctx, C.beer, x + 7, y + 3, 2, 3);
+  },
+  arrozCoco(ctx, x, y) {
+    rect(ctx, C.white, x + 3, y + 5, 10, 7);
+    rect(ctx, C.seaFoam, x + 4, y + 6, 8, 3);
+    rect(ctx, C.potato, x + 4, y + 9, 8, 2);
   },
   bed() {}, // la cama ya la dibuja el tile
 };

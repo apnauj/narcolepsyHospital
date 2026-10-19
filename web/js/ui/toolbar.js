@@ -1,6 +1,7 @@
 // Barra de acciones bajo el mapa. Qué está habilitado lo decide
 // toolbarState (model.js); aquí solo se pinta.
 import { h } from "./dom.js";
+import { bindMusicButton } from "./music.js";
 
 // Botones en orden. group "manual" son los comandos del modo libre.
 const BUTTONS = [
@@ -13,11 +14,13 @@ const BUTTONS = [
   { key: "queries", label: "Consultas", group: "scenario" },
   { key: "pause", label: "Pausa", group: "always" },
   { key: "speed", label: "×1", group: "always" },
+  { key: "music", label: "♪", group: "always" },
   { key: "menu", label: "Menú", group: "always" },
 ];
 
 // handlers: { addPatient, addDoctor, addOrderly, attack, wakeUp, next,
-//             queries, pause, speed, menu }, todos opcionales.
+//             queries, pause, speed, menu }, todos opcionales. El botón
+// «music» (silenciar) lo resuelve ui/music.js y no necesita handler.
 export function Toolbar(el, handlers = {}) {
   el.classList.add("toolbar");
   const buttons = {};
@@ -28,6 +31,7 @@ export function Toolbar(el, handlers = {}) {
       b.label,
     );
   }
+  bindMusicButton(buttons.music);
   el.replaceChildren(...BUTTONS.map((b) => buttons[b.key]));
 
   let mode = "free";
@@ -52,7 +56,7 @@ export function Toolbar(el, handlers = {}) {
     // state: salida de toolbarState; speed: 1|2|4.
     update(state, speed = 1) {
       for (const [key, btn] of Object.entries(buttons)) {
-        if (key === "menu") continue;
+        if (key === "menu" || key === "music") continue;
         btn.disabled = !state[key];
       }
       buttons.pause.textContent = state.paused ? "Seguir" : "Pausa";

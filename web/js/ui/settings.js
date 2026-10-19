@@ -21,6 +21,7 @@ export const DEFAULT_CONFIG = Object.freeze({
   speed: 1,
   showQueues: true,
   volume: 0, // 0..1; 0 = silencio (por defecto)
+  musicVolume: 0.5, // 0..1; música de fondo (ui/music.js)
 });
 
 export const STORAGE_KEY = "hospital-costenos.config";
@@ -72,6 +73,16 @@ export function validateConfig(input) {
     const volume = Number(rawVolume);
     if (Number.isFinite(volume) && volume >= 0 && volume <= 1) value.volume = Math.round(volume * 100) / 100;
     else errors.volume = "Volumen: debe estar entre 0 y 100 %.";
+  }
+
+  // Volumen de la música: 0..1; sin el campo queda en el valor por defecto.
+  const rawMusic = input?.musicVolume;
+  if (rawMusic === undefined || rawMusic === null || rawMusic === "") {
+    value.musicVolume = DEFAULT_CONFIG.musicVolume;
+  } else {
+    const musicVolume = Number(rawMusic);
+    if (Number.isFinite(musicVolume) && musicVolume >= 0 && musicVolume <= 1) value.musicVolume = Math.round(musicVolume * 100) / 100;
+    else errors.musicVolume = "Volumen de la música: debe estar entre 0 y 100 %.";
   }
 
   return { ok: Object.keys(errors).length === 0, errors, value };
