@@ -20,6 +20,7 @@ export const DEFAULT_CONFIG = Object.freeze({
   robots: 2,
   speed: 1,
   showQueues: true,
+  volume: 0, // 0..1; 0 = silencio (por defecto)
 });
 
 export const STORAGE_KEY = "hospital-costenos.config";
@@ -61,6 +62,17 @@ export function validateConfig(input) {
   else errors.speed = "Velocidad: elige ×1, ×2 o ×4.";
 
   value.showQueues = input?.showQueues === undefined ? true : Boolean(input.showQueues);
+
+  // Volumen de los sonidos (fx/audio.js): 0..1. Sin el campo (configuraciones
+  // guardadas antes de que existiera) queda en silencio.
+  const rawVolume = input?.volume;
+  if (rawVolume === undefined || rawVolume === null || rawVolume === "") {
+    value.volume = DEFAULT_CONFIG.volume;
+  } else {
+    const volume = Number(rawVolume);
+    if (Number.isFinite(volume) && volume >= 0 && volume <= 1) value.volume = Math.round(volume * 100) / 100;
+    else errors.volume = "Volumen: debe estar entre 0 y 100 %.";
+  }
 
   return { ok: Object.keys(errors).length === 0, errors, value };
 }

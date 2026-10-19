@@ -1,0 +1,2056 @@
+{
+  "version": 1,
+  "note": "Generado por go run ./tools/spritegen. No editar a mano: ver docs/gui/SPRITESHEETS.md.",
+  "tile": 16,
+  "palette": [
+    "#2b2118",
+    "#3b4a6b",
+    "#8b97a8",
+    "#c7d0d9",
+    "#fdf6e3",
+    "#ffffff",
+    "#8fd8c4",
+    "#4fa48e",
+    "#f7c948",
+    "#ee8b3a",
+    "#d62839",
+    "#8e1b2c",
+    "#2f80c2",
+    "#7cc6f0",
+    "#1d2b3a",
+    "#dcae74",
+    "#9a6339",
+    "#5bb04a",
+    "#2e7546",
+    "#b4dc5a",
+    "#f8d5b4",
+    "#e2ab86",
+    "#dca274",
+    "#b97a50",
+    "#a8683f",
+    "#84492a",
+    "#6e4128",
+    "#4c2a19",
+    "#f39ab5",
+    "#8a5cc2",
+    "#ecdcab",
+    "#5a3a22"
+  ],
+  "characters": {
+    "frame": {
+      "w": 20,
+      "h": 20
+    },
+    "anchor": {
+      "x": 10,
+      "y": 19
+    },
+    "columns": 4,
+    "rows": [
+      {
+        "anim": "idle",
+        "dir": "down",
+        "frames": 2
+      },
+      {
+        "anim": "idle",
+        "dir": "up",
+        "frames": 2
+      },
+      {
+        "anim": "idle",
+        "dir": "left",
+        "frames": 2
+      },
+      {
+        "anim": "idle",
+        "dir": "right",
+        "frames": 2
+      },
+      {
+        "anim": "walk",
+        "dir": "down",
+        "frames": 4
+      },
+      {
+        "anim": "walk",
+        "dir": "up",
+        "frames": 4
+      },
+      {
+        "anim": "walk",
+        "dir": "left",
+        "frames": 4
+      },
+      {
+        "anim": "walk",
+        "dir": "right",
+        "frames": 4
+      },
+      {
+        "anim": "attend",
+        "dir": "down",
+        "frames": 3
+      },
+      {
+        "anim": "attend",
+        "dir": "up",
+        "frames": 3
+      },
+      {
+        "anim": "attend",
+        "dir": "left",
+        "frames": 3
+      },
+      {
+        "anim": "attend",
+        "dir": "right",
+        "frames": 3
+      },
+      {
+        "anim": "push",
+        "dir": "down",
+        "frames": 4
+      },
+      {
+        "anim": "push",
+        "dir": "up",
+        "frames": 4
+      },
+      {
+        "anim": "push",
+        "dir": "left",
+        "frames": 4
+      },
+      {
+        "anim": "push",
+        "dir": "right",
+        "frames": 4
+      },
+      {
+        "anim": "attack",
+        "dir": "",
+        "frames": 3
+      },
+      {
+        "anim": "sleep",
+        "dir": "",
+        "frames": 2
+      },
+      {
+        "anim": "stretcher",
+        "dir": "",
+        "frames": 1
+      },
+      {
+        "anim": "wake",
+        "dir": "",
+        "frames": 3
+      }
+    ],
+    "animations": {
+      "attack": {
+        "frames": 3,
+        "fps": 3,
+        "loop": false,
+        "rows": {
+          "down": 16,
+          "left": 16,
+          "right": 16,
+          "up": 16
+        }
+      },
+      "attend": {
+        "frames": 3,
+        "fps": 3,
+        "loop": true,
+        "rows": {
+          "down": 8,
+          "left": 10,
+          "right": 11,
+          "up": 9
+        }
+      },
+      "idle": {
+        "frames": 2,
+        "fps": 1.5,
+        "loop": true,
+        "rows": {
+          "down": 0,
+          "left": 2,
+          "right": 3,
+          "up": 1
+        }
+      },
+      "push": {
+        "frames": 4,
+        "fps": 8,
+        "loop": true,
+        "rows": {
+          "down": 12,
+          "left": 14,
+          "right": 15,
+          "up": 13
+        }
+      },
+      "sleep": {
+        "frames": 2,
+        "fps": 1.5,
+        "loop": true,
+        "rows": {
+          "down": 17,
+          "left": 17,
+          "right": 17,
+          "up": 17
+        }
+      },
+      "stretcher": {
+        "frames": 1,
+        "fps": 0,
+        "loop": false,
+        "rows": {
+          "down": 18,
+          "left": 18,
+          "right": 18,
+          "up": 18
+        }
+      },
+      "wake": {
+        "frames": 3,
+        "fps": 3,
+        "loop": false,
+        "rows": {
+          "down": 19,
+          "left": 19,
+          "right": 19,
+          "up": 19
+        }
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8,
+        "loop": true,
+        "rows": {
+          "down": 4,
+          "left": 6,
+          "right": 7,
+          "up": 5
+        }
+      }
+    },
+    "layerOrder": [
+      "skin",
+      "torso",
+      "head",
+      "accessory"
+    ],
+    "layers": {
+      "accessory": [
+        {
+          "id": "ninguno",
+          "name": "Sin accesorio",
+          "sheet": null
+        },
+        {
+          "id": "mochila-wayuu",
+          "name": "Mochila wayuu",
+          "sheet": "generated/characters/accessory-mochila-wayuu.png"
+        },
+        {
+          "id": "abanico",
+          "name": "Abanico",
+          "sheet": "generated/characters/accessory-abanico.png"
+        },
+        {
+          "id": "gafas-oscuras",
+          "name": "Gafas oscuras",
+          "sheet": "generated/characters/accessory-gafas-oscuras.png"
+        },
+        {
+          "id": "cadena",
+          "name": "Cadena",
+          "sheet": "generated/characters/accessory-cadena.png"
+        }
+      ],
+      "head": [
+        {
+          "id": "pelo-corto-negro",
+          "name": "Pelo corto negro",
+          "sheet": "generated/characters/head-pelo-corto-negro.png"
+        },
+        {
+          "id": "pelo-corto-cafe",
+          "name": "Pelo corto café",
+          "sheet": "generated/characters/head-pelo-corto-cafe.png"
+        },
+        {
+          "id": "pelo-corto-canoso",
+          "name": "Pelo corto canoso",
+          "sheet": "generated/characters/head-pelo-corto-canoso.png"
+        },
+        {
+          "id": "pelo-crespo-negro",
+          "name": "Pelo crespo negro",
+          "sheet": "generated/characters/head-pelo-crespo-negro.png"
+        },
+        {
+          "id": "pelo-crespo-cafe",
+          "name": "Pelo crespo café",
+          "sheet": "generated/characters/head-pelo-crespo-cafe.png"
+        },
+        {
+          "id": "pelo-cola-negro",
+          "name": "Pelo largo con moña negro",
+          "sheet": "generated/characters/head-pelo-cola-negro.png"
+        },
+        {
+          "id": "pelo-cola-cafe",
+          "name": "Pelo largo con moña café",
+          "sheet": "generated/characters/head-pelo-cola-cafe.png"
+        },
+        {
+          "id": "pelo-cola-canoso",
+          "name": "Pelo largo con moña canoso",
+          "sheet": "generated/characters/head-pelo-cola-canoso.png"
+        },
+        {
+          "id": "calvo",
+          "name": "Calvo",
+          "sheet": null
+        },
+        {
+          "id": "vueltiao",
+          "name": "Sombrero vueltiao",
+          "sheet": "generated/characters/head-vueltiao.png"
+        },
+        {
+          "id": "gorro-azul",
+          "name": "Gorro quirúrgico azul",
+          "sheet": "generated/characters/head-gorro-azul.png"
+        },
+        {
+          "id": "gorro-verde",
+          "name": "Gorro quirúrgico verde",
+          "sheet": "generated/characters/head-gorro-verde.png"
+        }
+      ],
+      "skin": [
+        {
+          "id": "piel-1",
+          "name": "Piel clara",
+          "sheet": "generated/characters/skin-piel-1.png"
+        },
+        {
+          "id": "piel-2",
+          "name": "Piel trigueña",
+          "sheet": "generated/characters/skin-piel-2.png"
+        },
+        {
+          "id": "piel-3",
+          "name": "Piel morena",
+          "sheet": "generated/characters/skin-piel-3.png"
+        },
+        {
+          "id": "piel-4",
+          "name": "Piel negra",
+          "sheet": "generated/characters/skin-piel-4.png"
+        }
+      ],
+      "torso": [
+        {
+          "id": "camiseta-junior",
+          "name": "Camiseta rayada rojiblanca",
+          "sheet": "generated/characters/torso-camiseta-junior.png"
+        },
+        {
+          "id": "guayabera-blanca",
+          "name": "Guayabera blanca",
+          "sheet": "generated/characters/torso-guayabera-blanca.png"
+        },
+        {
+          "id": "guayabera-crema",
+          "name": "Guayabera crema",
+          "sheet": "generated/characters/torso-guayabera-crema.png"
+        },
+        {
+          "id": "floreada-azul",
+          "name": "Camisa floreada azul",
+          "sheet": "generated/characters/torso-floreada-azul.png"
+        },
+        {
+          "id": "floreada-amarilla",
+          "name": "Camisa floreada amarilla",
+          "sheet": "generated/characters/torso-floreada-amarilla.png"
+        },
+        {
+          "id": "floreada-roja",
+          "name": "Camisa floreada roja",
+          "sheet": "generated/characters/torso-floreada-roja.png"
+        },
+        {
+          "id": "floreada-menta",
+          "name": "Camisa floreada menta",
+          "sheet": "generated/characters/torso-floreada-menta.png"
+        },
+        {
+          "id": "camisilla-blanca",
+          "name": "Camisilla blanca",
+          "sheet": "generated/characters/torso-camisilla-blanca.png"
+        },
+        {
+          "id": "bata",
+          "name": "Bata blanca con estetoscopio",
+          "sheet": "generated/characters/torso-bata.png"
+        },
+        {
+          "id": "quirurgico-azul",
+          "name": "Uniforme quirúrgico azul",
+          "sheet": "generated/characters/torso-quirurgico-azul.png"
+        },
+        {
+          "id": "quirurgico-verde",
+          "name": "Uniforme quirúrgico verde",
+          "sheet": "generated/characters/torso-quirurgico-verde.png"
+        }
+      ]
+    },
+    "patients": {
+      "accessory": [
+        "ninguno",
+        "ninguno",
+        "ninguno",
+        "mochila-wayuu",
+        "abanico",
+        "gafas-oscuras",
+        "cadena"
+      ],
+      "head": [
+        "pelo-corto-negro",
+        "pelo-corto-cafe",
+        "pelo-corto-canoso",
+        "pelo-crespo-negro",
+        "pelo-crespo-cafe",
+        "pelo-cola-negro",
+        "pelo-cola-cafe",
+        "pelo-cola-canoso",
+        "calvo",
+        "vueltiao",
+        "vueltiao"
+      ],
+      "skin": [
+        "piel-1",
+        "piel-2",
+        "piel-3",
+        "piel-4"
+      ],
+      "torso": [
+        "camiseta-junior",
+        "camiseta-junior",
+        "guayabera-blanca",
+        "guayabera-crema",
+        "floreada-azul",
+        "floreada-amarilla",
+        "floreada-roja",
+        "floreada-menta",
+        "camisilla-blanca",
+        "camisilla-blanca"
+      ]
+    },
+    "staff": {
+      "doctor": [
+        {
+          "id": "doctor-1",
+          "name": "Doctor de pelo corto",
+          "skin": "piel-2",
+          "torso": "bata",
+          "head": "pelo-corto-negro",
+          "accessory": "ninguno",
+          "weight": 6
+        },
+        {
+          "id": "doctor-2",
+          "name": "Doctora de moña",
+          "skin": "piel-1",
+          "torso": "bata",
+          "head": "pelo-cola-cafe",
+          "accessory": "ninguno",
+          "weight": 6
+        },
+        {
+          "id": "doctor-3",
+          "name": "Doctor canoso",
+          "skin": "piel-4",
+          "torso": "bata",
+          "head": "pelo-corto-canoso",
+          "accessory": "gafas-oscuras",
+          "weight": 6
+        },
+        {
+          "id": "doctor-4",
+          "name": "Doctora de pelo crespo",
+          "skin": "piel-3",
+          "torso": "bata",
+          "head": "pelo-crespo-negro",
+          "accessory": "ninguno",
+          "weight": 6
+        },
+        {
+          "id": "doctor-vueltiao",
+          "name": "Doctor del vueltiao",
+          "skin": "piel-3",
+          "torso": "bata",
+          "head": "vueltiao",
+          "accessory": "ninguno",
+          "weight": 1
+        }
+      ],
+      "orderly": [
+        {
+          "id": "camillero-1",
+          "name": "Camillero de azul",
+          "skin": "piel-3",
+          "torso": "quirurgico-azul",
+          "head": "gorro-azul",
+          "accessory": "ninguno",
+          "weight": 1
+        },
+        {
+          "id": "camillero-2",
+          "name": "Camillera de verde",
+          "skin": "piel-1",
+          "torso": "quirurgico-verde",
+          "head": "gorro-verde",
+          "accessory": "ninguno",
+          "weight": 1
+        },
+        {
+          "id": "camillero-3",
+          "name": "Camillero de verde",
+          "skin": "piel-4",
+          "torso": "quirurgico-verde",
+          "head": "pelo-corto-negro",
+          "accessory": "ninguno",
+          "weight": 1
+        },
+        {
+          "id": "camillero-4",
+          "name": "Camillera de azul",
+          "skin": "piel-2",
+          "torso": "quirurgico-azul",
+          "head": "pelo-cola-negro",
+          "accessory": "ninguno",
+          "weight": 1
+        }
+      ],
+      "other": [
+        {
+          "id": "otro-1",
+          "name": "Administrativo",
+          "skin": "piel-2",
+          "torso": "guayabera-blanca",
+          "head": "pelo-corto-canoso",
+          "accessory": "gafas-oscuras",
+          "weight": 1
+        },
+        {
+          "id": "otro-2",
+          "name": "Recepcionista",
+          "skin": "piel-3",
+          "torso": "floreada-menta",
+          "head": "pelo-cola-negro",
+          "accessory": "ninguno",
+          "weight": 1
+        }
+      ]
+    }
+  },
+  "robot": {
+    "sheet": "generated/objects/robot.png",
+    "x": 0,
+    "y": 0,
+    "frame": {
+      "w": 26,
+      "h": 15
+    },
+    "frames": 2,
+    "fps": 4,
+    "anchor": {
+      "x": 13,
+      "y": 14
+    },
+    "ride": {
+      "x": 11,
+      "y": 0,
+      "rotate": 0,
+      "flipX": false
+    },
+    "tags": [
+      "carrier"
+    ],
+    "source": "propio"
+  },
+  "stretcher": {
+    "sheet": "generated/objects/camilla.png",
+    "x": 0,
+    "y": 0,
+    "frame": {
+      "w": 20,
+      "h": 16
+    },
+    "frames": 1,
+    "fps": 0,
+    "anchor": {
+      "x": 10,
+      "y": 15
+    },
+    "ride": {
+      "x": 11,
+      "y": -1,
+      "rotate": 0,
+      "flipX": false
+    },
+    "tags": [
+      "carrier"
+    ],
+    "source": "propio"
+  },
+  "shadow": {
+    "sheet": "generated/objects/sombra.png",
+    "x": 0,
+    "y": 0,
+    "frame": {
+      "w": 12,
+      "h": 4
+    },
+    "frames": 1,
+    "fps": 0,
+    "anchor": {
+      "x": 6,
+      "y": 2
+    },
+    "tags": [
+      "shadow"
+    ],
+    "source": "propio"
+  },
+  "objects": {
+    "arbol": {
+      "sheet": "generated/objects/arbol.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "kenney-roguelike-rpg-pack"
+    },
+    "arbol@1x2": {
+      "sheet": "generated/objects/arbol-1x2.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 32
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 2
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "kenney-roguelike-rpg-pack"
+    },
+    "arbusto": {
+      "sheet": "generated/objects/arbusto.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "kenney-roguelike-rpg-pack"
+    },
+    "bed:down": {
+      "sheet": "generated/objects/bed-down.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 32
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 2
+      },
+      "ride": {
+        "x": 10,
+        "y": 16,
+        "rotate": 90,
+        "flipX": false
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "bed:left": {
+      "sheet": "generated/objects/bed-left.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 32,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 16,
+        "y": 0
+      },
+      "footprint": {
+        "w": 2,
+        "h": 1
+      },
+      "ride": {
+        "x": 15,
+        "y": 5,
+        "rotate": 0,
+        "flipX": true
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "bed:right": {
+      "sheet": "generated/objects/bed-right.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 32,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 2,
+        "h": 1
+      },
+      "ride": {
+        "x": 17,
+        "y": 5,
+        "rotate": 0,
+        "flipX": false
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "bed:up": {
+      "sheet": "generated/objects/bed-up.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 32
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 16
+      },
+      "footprint": {
+        "w": 1,
+        "h": 2
+      },
+      "ride": {
+        "x": 6,
+        "y": 15,
+        "rotate": 270,
+        "flipX": false
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "bell": {
+      "sheet": "generated/objects/bell.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "bench": {
+      "sheet": "generated/objects/bench.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "bench@2x1": {
+      "sheet": "generated/objects/bench-2x1.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 32,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 2,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "board": {
+      "sheet": "generated/objects/board.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 14
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": -1
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "wall"
+      ],
+      "source": "propio"
+    },
+    "botiquin": {
+      "sheet": "generated/objects/botiquin.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "kenney-roguelike-indoors"
+    },
+    "cactus": {
+      "sheet": "generated/objects/cactus.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "kenney-roguelike-rpg-pack"
+    },
+    "chair": {
+      "sheet": "generated/objects/chair.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 14
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": -2
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "chargePad": {
+      "sheet": "generated/objects/chargePad.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "under"
+      ],
+      "source": "propio"
+    },
+    "charger": {
+      "sheet": "generated/objects/charger.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "wall"
+      ],
+      "source": "propio"
+    },
+    "coffeeCart": {
+      "sheet": "generated/objects/coffeeCart.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "counter": {
+      "sheet": "generated/objects/counter.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor",
+        "repeat"
+      ],
+      "source": "kenney-roguelike-indoors"
+    },
+    "cuadro": {
+      "sheet": "generated/objects/cuadro.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "wall"
+      ],
+      "source": "kenney-roguelike-indoors"
+    },
+    "deskChair": {
+      "sheet": "generated/objects/deskChair.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "kenney-roguelike-indoors"
+    },
+    "doorNumber": {
+      "sheet": "generated/objects/doorNumber.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 9
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": -3
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "wall"
+      ],
+      "source": "propio"
+    },
+    "doormat": {
+      "sheet": "generated/objects/doormat.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "under"
+      ],
+      "source": "propio"
+    },
+    "extinguisher": {
+      "sheet": "generated/objects/extinguisher.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": -1
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "wall"
+      ],
+      "source": "propio"
+    },
+    "fan": {
+      "sheet": "generated/objects/fan.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 3,
+      "fps": 10,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "ceiling"
+      ],
+      "source": "propio"
+    },
+    "flowers": {
+      "sheet": "generated/objects/flowers.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "kenney-roguelike-rpg-pack"
+    },
+    "fridge": {
+      "sheet": "generated/objects/fridge.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 20
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 4
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "gate": {
+      "sheet": "generated/objects/gate.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "glassDoor": {
+      "sheet": "generated/objects/glassDoor.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "wall"
+      ],
+      "source": "propio"
+    },
+    "hammock@2x1": {
+      "sheet": "generated/objects/hammock-2x1.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 32,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 2,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "linenCart": {
+      "sheet": "generated/objects/linenCart.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "locker@1x2": {
+      "sheet": "generated/objects/locker-1x2.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 32
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 2
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "matera-2": {
+      "sheet": "generated/objects/matera-2.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "kenney-roguelike-indoors"
+    },
+    "menuBoard": {
+      "sheet": "generated/objects/menuBoard.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 23,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 3,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "wall"
+      ],
+      "source": "propio"
+    },
+    "monitor": {
+      "sheet": "generated/objects/monitor.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 3,
+      "fps": 4,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "mural@3x1": {
+      "sheet": "generated/objects/mural-3x1.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 48,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 3,
+        "h": 1
+      },
+      "tags": [
+        "wall"
+      ],
+      "source": "propio"
+    },
+    "nightstand": {
+      "sheet": "generated/objects/nightstand.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "kenney-roguelike-indoors"
+    },
+    "noSleepSign": {
+      "sheet": "generated/objects/noSleepSign.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 75,
+        "h": 18
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 29,
+        "y": 2
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "wall"
+      ],
+      "source": "propio"
+    },
+    "palm": {
+      "sheet": "generated/objects/palm.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 32,
+        "h": 48
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 8,
+        "y": 32
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "pico": {
+      "sheet": "generated/objects/pico.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 17
+      },
+      "frames": 2,
+      "fps": 4,
+      "origin": {
+        "x": 0,
+        "y": 1
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "plant": {
+      "sheet": "generated/objects/plant.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "kenney-roguelike-indoors"
+    },
+    "receptionSign": {
+      "sheet": "generated/objects/receptionSign.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 43,
+        "h": 11
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 13,
+        "y": -5
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "wall"
+      ],
+      "source": "propio"
+    },
+    "rug@3x2": {
+      "sheet": "generated/objects/rug-3x2.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 48,
+        "h": 32
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 3,
+        "h": 2
+      },
+      "tags": [
+        "under"
+      ],
+      "source": "propio"
+    },
+    "shelf": {
+      "sheet": "generated/objects/shelf.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "kenney-roguelike-indoors"
+    },
+    "sign@2x1": {
+      "sheet": "generated/objects/sign-2x1.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 77,
+        "h": 31
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 22,
+        "y": 15
+      },
+      "footprint": {
+        "w": 2,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "silla-madera": {
+      "sheet": "generated/objects/silla-madera.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "kenney-roguelike-indoors"
+    },
+    "sink": {
+      "sheet": "generated/objects/sink.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "kenney-roguelike-indoors"
+    },
+    "table": {
+      "sheet": "generated/objects/table.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "kenney-roguelike-indoors"
+    },
+    "table@2x1": {
+      "sheet": "generated/objects/table-2x1.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 32,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 2,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "kenney-roguelike-indoors"
+    },
+    "toilet": {
+      "sheet": "generated/objects/toilet.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "toolShelf@1x2": {
+      "sheet": "generated/objects/toolShelf-1x2.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 32
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 2
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
+    "tv": {
+      "sheet": "generated/objects/tv.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 10
+      },
+      "frames": 3,
+      "fps": 3,
+      "origin": {
+        "x": 0,
+        "y": -2
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "wall"
+      ],
+      "source": "propio"
+    },
+    "water": {
+      "sheet": "generated/objects/water.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 20
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 4
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "wall"
+      ],
+      "source": "propio"
+    },
+    "workbench@1x2": {
+      "sheet": "generated/objects/workbench-1x2.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 32
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 2
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    }
+  },
+  "tiles": {
+    "sheet": "generated/tiles.png",
+    "size": 16,
+    "tiles": {
+      "arena": {
+        "x": 0,
+        "y": 16,
+        "frames": 1,
+        "fps": 0,
+        "source": "propio"
+      },
+      "grama": {
+        "x": 16,
+        "y": 16,
+        "frames": 1,
+        "fps": 0,
+        "source": "propio"
+      },
+      "jardin": {
+        "x": 32,
+        "y": 16,
+        "frames": 1,
+        "fps": 0,
+        "source": "propio"
+      },
+      "madera": {
+        "x": 32,
+        "y": 0,
+        "frames": 1,
+        "fps": 0,
+        "source": "propio"
+      },
+      "mar": {
+        "x": 96,
+        "y": 16,
+        "frames": 2,
+        "fps": 1,
+        "source": "propio"
+      },
+      "mostrador": {
+        "x": 0,
+        "y": 32,
+        "frames": 1,
+        "fps": 0,
+        "source": "kenney-roguelike-indoors"
+      },
+      "pared": {
+        "x": 48,
+        "y": 0,
+        "frames": 1,
+        "fps": 0,
+        "source": "propio"
+      },
+      "pared-tope": {
+        "x": 64,
+        "y": 0,
+        "frames": 1,
+        "fps": 0,
+        "source": "propio"
+      },
+      "piso": {
+        "x": 0,
+        "y": 0,
+        "frames": 1,
+        "fps": 0,
+        "source": "propio"
+      },
+      "piso-menta": {
+        "x": 16,
+        "y": 0,
+        "frames": 1,
+        "fps": 0,
+        "source": "propio"
+      },
+      "puerta": {
+        "x": 96,
+        "y": 0,
+        "frames": 1,
+        "fps": 0,
+        "source": "propio"
+      },
+      "puerta-abierta": {
+        "x": 112,
+        "y": 0,
+        "frames": 1,
+        "fps": 0,
+        "source": "propio"
+      },
+      "seto": {
+        "x": 48,
+        "y": 16,
+        "frames": 1,
+        "fps": 0,
+        "source": "propio"
+      },
+      "tapete": {
+        "x": 64,
+        "y": 16,
+        "frames": 1,
+        "fps": 0,
+        "source": "propio"
+      },
+      "vacio": {
+        "x": 80,
+        "y": 16,
+        "frames": 1,
+        "fps": 0,
+        "source": "propio"
+      },
+      "ventana": {
+        "x": 80,
+        "y": 0,
+        "frames": 1,
+        "fps": 0,
+        "source": "propio"
+      }
+    },
+    "byType": {
+      "BED": "piso-menta",
+      "COUNTER": "mostrador",
+      "DOOR": "puerta-abierta",
+      "FLOOR": "piso",
+      "FURNITURE": "piso",
+      "GRASS": "grama",
+      "HEDGE": "seto",
+      "PATH": "arena",
+      "ROOM_FLOOR": "piso-menta",
+      "VOID": "jardin",
+      "WALL": "pared",
+      "WINDOW": "ventana",
+      "WOOD": "madera"
+    }
+  },
+  "emotes": {
+    "sheet": "generated/emotes.png",
+    "frame": {
+      "w": 16,
+      "h": 16
+    },
+    "count": 30,
+    "names": {
+      "alert": 21,
+      "annoyed": 8,
+      "bored": 4,
+      "confused": 1,
+      "content": 11,
+      "cross": 29,
+      "cry": 15,
+      "dizzy": 2,
+      "dots": 19,
+      "exclaim": 20,
+      "grumpy": 9,
+      "happy": 10,
+      "heart": 26,
+      "heartbreak": 25,
+      "laugh": 5,
+      "neutral": 13,
+      "person": 23,
+      "question": 22,
+      "questionRed": 24,
+      "sad": 3,
+      "shock": 0,
+      "sick": 14,
+      "sleep": 27,
+      "smile": 17,
+      "star": 28,
+      "suspicious": 6,
+      "tired": 18,
+      "upset": 16,
+      "wink": 7,
+      "worried": 12
+    },
+    "source": "ninja-adventure"
+  }
+}

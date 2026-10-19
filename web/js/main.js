@@ -11,9 +11,10 @@ import { createMenuScene } from "./scenes/menu.js";
 import { createConfigScene } from "./scenes/config.js";
 import { createGameScene } from "./scenes/game.js";
 import { createScenarioScene } from "./scenes/scenario.js";
-import { Camera, TILE_SIZE, attachCameraControls, drawWorld, generateWorld } from "./world/index.js";
-import { Director, SquareRenderer } from "./entities/index.js";
+import { Camera, TILE_SIZE, attachCameraControls, generateWorld } from "./world/index.js";
+import { Director } from "./entities/index.js";
 import { loadPhrases } from "./ui/bubble.js";
+import { createStageArt } from "./art/stage.js";
 
 const appEl = document.getElementById("app");
 const canvas = document.getElementById("screen");
@@ -51,12 +52,15 @@ async function buildStage(snapshot, config) {
     rng: Math.random,
     phrases: await loadPhrases(),
   });
+
+  // Con arte: SpriteRenderer + tilePainter; si no carga, cuadritos y colores planos.
+  const { renderer, drawWorld: draw } = await createStageArt(world, director);
   return {
     world,
     camera,
     director,
-    renderer: new SquareRenderer(),
-    drawWorld,
+    renderer,
+    drawWorld: draw,
     wasDrag: () => cameraControls?.wasDrag() ?? false,
   };
 }
