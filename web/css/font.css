@@ -1,0 +1,10 @@
+/* Fuente pixel del juego: Public Pixel (GGBotNet, CC0), con tildes, ñ, ¿ y ¡.
+   Está dibujada sobre una grilla de 8 px: se ve nítida en tamaños múltiplos
+   de 8px (8, 16, 24...). Ver assets/LICENSES.md. */
+@font-face {
+  font-family: "PixelFont";
+  src: url("../assets/vendor/public-pixel/PublicPixel.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
