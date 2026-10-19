@@ -1,0 +1,302 @@
+# Tiles de 16x16 (vista desde arriba con perspectiva 3/4: las paredes
+# muestran su cara frontal). Solo colores literales.
+
+# Baldosa blanca cálida con junta gris (pasillos, recepción).
+@tile_piso 16x16
+4444444444444443
+4444444444444443
+4454444444444443
+4444444444444443
+4444444444444443
+4444444444444443
+4444444444444443
+4444444444454443
+4444444444444443
+4444444444444443
+4444444444444443
+4444444444444443
+4444445444444443
+4444444444444443
+4444444444444443
+3333333333333333
+
+# Ajedrezado menta y blanco (salas y habitaciones).
+@tile_piso_menta 16x16
+6666666644444443
+6666666644444443
+6666666644444443
+6666666644444443
+6666666644444443
+6666666644444443
+6666666644444443
+6666666644444443
+4444444466666667
+4444444466666667
+4444444466666667
+4444444466666667
+4444444466666667
+4444444466666667
+4444444466666667
+3333333377777777
+
+# Piso de madera clara en tablas (cafetería, sala de personal).
+@tile_madera 16x16
+ffffffffffffffff
+ffffffffgfffffff
+ffffffffgfffffff
+gggggggggggggggg
+ffffffffffffffff
+fffgffffffffffff
+fffgffffffffffff
+gggggggggggggggg
+ffffffffffffffff
+ffffffffffffgfff
+ffffffffffffgfff
+gggggggggggggggg
+ffffffffffffffff
+fffffffgffffffff
+fffffffgffffffff
+gggggggggggggggg
+
+# Pared vista de frente: zócalo menta abajo, blanco arriba.
+@tile_pared 16x16
+2222222222222222
+4444444444444444
+4444444444444444
+4444444444444444
+4444444444444444
+4444444444444444
+4444444444444444
+4444444444444444
+7777777777777777
+6666666666666666
+6666666666666666
+6666666666666666
+6666666666666666
+6666666666666666
+7777777777777777
+0000000000000000
+
+# Tope de la pared (su grosor visto desde arriba).
+@tile_pared_tope 16x16
+uuuuuuuuuuuuuuuu
+uuuuuuuuuuuuuuuu
+uuuuuuuuuuuuuuuu
+uuuuuuuuuuuuuuuu
+uuuuuuuuuuuuuuuu
+uuuuuuuuuuuuuuuu
+uuuuuuuuuuuuuuuu
+uuuuuuuuuuuuuuuu
+uuuuuuuuuuuuuuuu
+uuuuuuuuuuuuuuuu
+uuuuuuuuuuuuuuuu
+uuuuuuuuuuuuuuuu
+uuuuuuuuuuuuuuuu
+4444444444444444
+3333333333333333
+2222222222222222
+
+# Ventana en la pared (cielo caribe).
+@tile_ventana 16x16
+2222222222222222
+4400000000000044
+440dddddd5ddd044
+440ddddd5dddd044
+440dddd5ddddd044
+4400000000000044
+440dd5ddddddd044
+440d5dddddddd044
+7700000000000077
+6666666666666666
+6666666666666666
+6666666666666666
+6666666666666666
+6666666666666666
+7777777777777777
+0000000000000000
+
+# Puerta de vidrio (automática) cerrada.
+@tile_puerta 16x16
+2222222222222222
+0000000000000000
+02ddddd00ddddd20
+02dd5dd00dd5dd20
+02d5ddd00d5ddd20
+02ddddd00ddddd20
+02ddddd00ddddd20
+02ddddd00ddddd20
+02ddddd00ddddd20
+02dddd5005dddd20
+02ddddd00ddddd20
+02ddddd00ddddd20
+02ddddd00ddddd20
+02ddddd00ddddd20
+0222222002222220
+0000000000000000
+
+# Vano de puerta abierta (se ve el piso al otro lado).
+@tile_puerta_abierta 16x16
+2222222222222222
+0000000000000000
+0244444444444420
+0244444444444420
+0244444444444420
+0244444444444420
+0244444444444420
+0244444444444420
+0244444444444420
+0244444444444420
+0244444444444420
+0244444444444420
+0244444444444420
+0244444444444420
+0244444444444420
+0244444444444420
+
+# Fuera del hospital: arena, grama, mar (2 frames) y el vacío.
+@tile_arena 16x16
+uuuuuuuuuuuuuuuu
+uuuuuuuuuuuufuuu
+uufuuuuuuuuuuuuu
+uuuuuuuuuuuuuuuu
+uuuuuuufuuuuuuuu
+uuuuuuuuuuuuuuuu
+uuuuuuuuuuuuuufu
+uuufuuuuuuuuuuuu
+uuuuuuuuuuuuuuuu
+uuuuuuuuuufuuuuu
+uuuuuuuuuuuuuuuu
+ufuuuuuuuuuuuuuu
+uuuuuuuuuuuuuuuu
+uuuuuufuuuuuuufu
+uuuuuuuuuuuuuuuu
+uuuuuuuuuuuuuuuu
+
+@tile_grama 16x16
+hhhhhhhhhhhhhhhh
+hhhhhhhhhhhjhhhh
+hhjhhhhhhhjhjhhh
+hjhjhhhhhhhhhhhh
+hhhhhhhhhhhhhhhh
+hhhhhhihhhhhhhhh
+hhhhhihihhhhhhjh
+hhhhhhhhhhhhhjhj
+hhhhhhhhhhhhhhhh
+hhhjhhhhhhhhhhhh
+hhjhjhhhhhhihhhh
+hhhhhhhhhhihihhh
+hhhhhhhhhhhhhhhh
+hhhhhhhjhhhhhhhh
+hihhhhjhjhhhhhhh
+ihihhhhhhhhhhhhh
+
+@tile_mar_0 16x16
+cccccccccccccccc
+cccddccccccccccc
+cddccdcccccccccc
+cccccccccccccccc
+ccccccccccddcccc
+cccccccccdccddcc
+cccccccccccccccc
+cccccccccccccccc
+ccddcccccccccccc
+cdccddcccccccccc
+cccccccccccccccc
+ccccccccccccddcc
+cccccccccccddccd
+cccccccccccccccc
+cccccddccccccccc
+ccccdccddccccccc
+
+@tile_mar_1 16x16
+cccccccccccccccc
+ccccddcccccccccc
+ccddccdccccccccc
+cccccccccccccccc
+cccccccccccddccc
+ccccccccccdccddc
+cccccccccccccccc
+cccccccccccccccc
+cccddccccccccccc
+ccdccddccccccccc
+cccccccccccccccc
+cccccccccccccddc
+ccccccccccccddcc
+cccccccccccccccc
+ccccccddcccccccc
+cccccdccddcccccc
+
+@tile_vacio 16x16
+eeeeeeeeeeeeeeee
+eeeeeeeeeeeeeeee
+eeeeeeeeeeeeeeee
+eeeeeeeeeeeeeeee
+eeeeeeeeeeeeeeee
+eeeeeeeeeeeeeeee
+eeeeeeeeeeeeeeee
+eeeeeeeeeeeeeeee
+eeeeeeeeeeeeeeee
+eeeeeeeeeeeeeeee
+eeeeeeeeeeeeeeee
+eeeeeeeeeeeeeeee
+eeeeeeeeeeeeeeee
+eeeeeeeeeeeeeeee
+eeeeeeeeeeeeeeee
+eeeeeeeeeeeeeeee
+
+# Tapete rojo de la entrada.
+@tile_tapete 16x16
+bbbbbbbbbbbbbbbb
+baaaaaaaaaaaaaab
+ba8aaaaaaaaaa8ab
+baaaaaaaaaaaaaab
+baaaaaaaaaaaaaab
+baaaaaaaaaaaaaab
+baaaaaaaaaaaaaab
+baaaaaaaaaaaaaab
+baaaaaaaaaaaaaab
+baaaaaaaaaaaaaab
+baaaaaaaaaaaaaab
+baaaaaaaaaaaaaab
+baaaaaaaaaaaaaab
+ba8aaaaaaaaaa8ab
+baaaaaaaaaaaaaab
+bbbbbbbbbbbbbbbb
+
+# Jardín tropical que rodea el hospital (no se pisa).
+@tile_jardin 16x16
+iiiiiiiiiiiiiiii
+iihiiiiiiiiihiii
+ihjhiiiiiiihjhii
+iihiiiiiiiiihiii
+iiiiiiihiiiiiiii
+iiiiiihjhiiiiiii
+iiiiiiihiiiiiiii
+iiiiiiiiiiiiihii
+iihiiiiiiiiihjhi
+ihjhiiiiiiiiihii
+iihiiiihiiiiiiii
+iiiiiihjhiiiiiii
+iiiiiiihiiiiiiii
+iiiiiiiiiiiihiii
+iiihiiiiiiihjhii
+iihjhiiiiiiihiii
+
+# Seto que cierra la entrada.
+@tile_seto 16x16
+.00000000000000.
+0hhjhhhhhhjhhhh0
+0hjjjhhhhjjjhhh0
+0hhjhhhhhhjhhhh0
+0hhhhhhjhhhhhhh0
+0hhhhhjjjhhhhhh0
+0hhhhhhjhhhhhih0
+0hhihhhhhhhhhhh0
+0hhhhhhhhhhihhh0
+0ihhhhhihhhhhhi0
+0iihhhhhhhhhhii0
+0iiihiiiiihiiii0
+0iiiiiiiiiiiiii0
+0000000000000000
+0vvvvvvvvvvvvvv0
+0000000000000000
