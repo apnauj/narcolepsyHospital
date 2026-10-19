@@ -1,0 +1,34 @@
+/* Base: colores de la paleta Caribe y el canvas en pixel art. */
+:root {
+  --bg: #1d2b3a;
+  --panel: #fdf6e3;
+  --ink: #2b2118;
+  --mint: #8fd8c4;
+  --sun: #f7c948;
+  --junior-red: #d62839;
+  --sea: #2f80c2;
+  --scale: 3;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: monospace;
+}
+
+#app {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+}
+
+/* El mapa se dibuja a 384×216 y se escala por un factor entero sin filtrar. */
+#screen {
+  width: calc(384px * var(--scale));
+  height: calc(216px * var(--scale));
+  image-rendering: pixelated;
+  background: #000;
+}

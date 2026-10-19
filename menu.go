@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"objetosCostenos/demo"
 	"objetosCostenos/hospital"
 )
 
@@ -16,7 +17,7 @@ const simulationDelay = 20 * time.Millisecond
 
 // runMenu trabaja sobre un hospital recién armado con los datos del escenario.
 func runMenu(in *bufio.Scanner) error {
-	h, err := newDemoHospital()
+	h, err := demo.NewHospital()
 	if err != nil {
 		return err
 	}
