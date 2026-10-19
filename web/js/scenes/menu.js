@@ -10,7 +10,11 @@ export const SUBTITLE = "Urgencias con sabor a Caribe y mucha siesta";
 const W = 384;
 const HORIZON = 132; // donde acaba el cielo y empieza el mar
 const SHORE = 172; // donde acaba el mar y empieza la arena
-const HX = 206; // esquina izquierda del hospital
+// El hospital mide 120 px de ancho y su torre empieza en y=70, debajo del
+// título y el subtítulo (que van en el DOM sobre la franja de arriba).
+const HX = 226; // esquina izquierda del hospital
+const HY = 96; // techo del edificio
+const HW = 120;
 
 const C = {
   sky: ["#4fa6d6", "#6fbfe0", "#92d3e6", "#b9e6ee"],
@@ -162,58 +166,56 @@ function palm(ctx, baseX, baseY, height, lean, t, phase) {
 
 function hospital(ctx, t) {
   const x = HX;
-  const y = 74;
-  const w = 160;
-  const hh = 100;
+  const y = HY;
+  const w = HW;
+  const hh = SHORE - HY; // el edificio llega justo a la arena
   rect(ctx, C.ink, x - 1, y - 1, w + 2, hh + 1);
   rect(ctx, C.wall, x, y, w, hh);
-  rect(ctx, C.wallShade, x + w - 10, y, 10, hh);
-  rect(ctx, C.mintDark, x - 6, y - 8, w + 12, 8);
-  rect(ctx, C.mint, x - 6, y - 8, w + 12, 5);
-  // Torre central con la cruz (parpadea suave).
-  rect(ctx, C.ink, x + 59, y - 31, 42, 24);
-  rect(ctx, C.wall, x + 60, y - 30, 40, 23);
+  rect(ctx, C.wallShade, x + w - 8, y, 8, hh);
+  rect(ctx, C.mintDark, x - 5, y - 7, w + 10, 7);
+  rect(ctx, C.mint, x - 5, y - 7, w + 10, 4);
+  // Torre central con la cruz (parpadea suave). Queda debajo del subtítulo.
+  rect(ctx, C.ink, x + 43, y - 26, 34, 19);
+  rect(ctx, C.wall, x + 44, y - 25, 32, 18);
   const glow = Math.floor(t * 2) % 2 === 0 ? C.red : "#e8505d";
-  rect(ctx, glow, x + 77, y - 27, 6, 17);
-  rect(ctx, glow, x + 72, y - 22, 16, 6);
+  rect(ctx, glow, x + 57, y - 23, 6, 14);
+  rect(ctx, glow, x + 53, y - 19, 14, 6);
   for (let row = 0; row < 2; row++) {
-    for (let col = 0; col < 6; col++) {
-      if (row === 1 && (col === 2 || col === 3)) continue;
-      const wx = x + 10 + col * 24;
-      const wy = y + 12 + row * 34;
-      rect(ctx, C.ink, wx - 1, wy - 1, 18, 18);
-      rect(ctx, C.glass, wx, wy, 16, 16);
-      rect(ctx, C.glassLight, wx + 2, wy + 2, 4, 6);
-      rect(ctx, C.mintDark, wx - 2, wy + 16, 20, 2);
+    for (let col = 0; col < 5; col++) {
+      if (row === 1 && col === 2) continue; // ahí va la puerta
+      const wx = x + 8 + col * 22;
+      const wy = y + 8 + row * 32;
+      rect(ctx, C.ink, wx - 1, wy - 1, 16, 16);
+      rect(ctx, C.glass, wx, wy, 14, 14);
+      rect(ctx, C.glassLight, wx + 2, wy + 2, 3, 5);
+      rect(ctx, C.mintDark, wx - 2, wy + 14, 18, 2);
     }
   }
   // Letrero de madera entre los dos pisos.
-  rect(ctx, C.ink, x + 45, y + 30, 70, 14);
-  rect(ctx, C.wood, x + 46, y + 31, 68, 12);
-  rect(ctx, C.woodDark, x + 46, y + 42, 68, 1);
-  px(ctx, C.ink, x + 48, y + 33);
-  px(ctx, C.ink, x + 111, y + 33);
+  rect(ctx, C.ink, x + 27, y + 24, 66, 13);
+  rect(ctx, C.wood, x + 28, y + 25, 64, 11);
+  rect(ctx, C.woodDark, x + 28, y + 35, 64, 1);
   ctx.font = "8px PixelFont, monospace";
   ctx.textBaseline = "top";
   ctx.fillStyle = C.ink;
-  ctx.fillText("HOSPITAL", x + 49, y + 34);
+  ctx.fillText("HOSPITAL", x + 29, y + 27);
   ctx.fillStyle = C.white;
-  ctx.fillText("HOSPITAL", x + 48, y + 33);
-  // Puerta doble, alero y camino.
-  rect(ctx, C.ink, x + 62, y + 60, 36, 40);
-  rect(ctx, C.glass, x + 64, y + 62, 15, 38);
-  rect(ctx, C.glass, x + 81, y + 62, 15, 38);
-  rect(ctx, C.glassLight, x + 66, y + 64, 3, 10);
-  rect(ctx, C.glassLight, x + 83, y + 64, 3, 10);
-  rect(ctx, C.red, x + 56, y + 54, 48, 5);
-  for (let i = 0; i < 4; i++) rect(ctx, i % 2 ? C.wallShade : C.wall, x + 64 - i * 3, y + hh + i * 4, 32 + i * 6, 4);
+  ctx.fillText("HOSPITAL", x + 28, y + 26);
+  // Puerta doble, alero y escalones.
+  rect(ctx, C.ink, x + 48, y + 46, 24, hh - 46);
+  rect(ctx, C.glass, x + 50, y + 48, 9, hh - 48);
+  rect(ctx, C.glass, x + 61, y + 48, 9, hh - 48);
+  rect(ctx, C.glassLight, x + 52, y + 50, 2, 8);
+  rect(ctx, C.glassLight, x + 63, y + 50, 2, 8);
+  rect(ctx, C.red, x + 45, y + 42, 30, 4);
+  for (let i = 0; i < 4; i++) rect(ctx, i % 2 ? C.wallShade : C.wall, x + 50 - i * 3, y + hh + i * 4, 20 + i * 6, 4);
 }
 
 // Banderitas de carnaval entre las dos puntas del techo.
 function bunting(ctx, t) {
   const x1 = HX - 2;
-  const x2 = HX + 162;
-  const y0 = 68;
+  const x2 = HX + HW + 2;
+  const y0 = HY - 6;
   const sag = 9;
   const colors = [C.red, C.yellow, C.blue, C.green];
   for (let x = x1; x <= x2; x++) {

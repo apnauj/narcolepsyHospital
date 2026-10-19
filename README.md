@@ -30,7 +30,7 @@ Es un mapa 2D en pixel art del hospital, servido por una API REST hecha con `net
 - **Simular caso de prueba:** el mismo escenario de `go run .`, paso a paso, con las cuatro consultas al final.
 - **Configuración:** de 2 a 10 habitaciones, personal inicial, de 1 a 3 camillas robot, velocidad, panel de colas y volumen de la música y de los efectos.
 
-La música de fondo (`web/assets/audio/musica.mp3`) arranca con el primer clic o tecla, porque los navegadores no dejan reproducir sonido antes. Se silencia con el botón ♪.
+La música de fondo arranca con el primer clic o tecla, porque los navegadores no dejan reproducir sonido antes. Se silencia con el botón ♪. El archivo no está en el repositorio: para escucharla, coloca un mp3 en `web/assets/audio/musica.mp3` (ignorado por git).
 
 El paquete `hospital` no cambió para la interfaz y no sabe que existe:
 
