@@ -11,6 +11,9 @@ import { createMenuScene } from "./scenes/menu.js";
 import { createConfigScene } from "./scenes/config.js";
 import { createGameScene } from "./scenes/game.js";
 import { createScenarioScene } from "./scenes/scenario.js";
+import { Camera, TILE_SIZE, attachCameraControls, drawWorld, generateWorld } from "./world/index.js";
+import { Director, SquareRenderer } from "./entities/index.js";
+import { loadPhrases } from "./ui/bubble.js";
 
 const appEl = document.getElementById("app");
 const canvas = document.getElementById("screen");
@@ -24,19 +27,38 @@ const SCENES = {
   scenario: createScenarioScene,
 };
 
-// PUNTO DE CONEXIÓN (feature/gui-integration): parámetros que se inyectan en
-// las escenas de juego. Por ejemplo, para game y scenario:
-//   { build: async (snapshot, config) => {
-//       const world = generateWorld({ rooms: snapshot.rooms.length });
-//       const camera = new Camera(384, 216, world.cols * 16, world.rows * 16);
-//       attachCameraControls(camera, canvas);
-//       const director = new Director(world, { robots: config.robots, rng: Math.random });
-//       return { world, camera, director, renderer: SquareRenderer, drawWorld };
-//     } }
-// También sirven { director, world, camera, renderer, drawWorld } ya armados.
-// Ver la cabecera de scenes/game.js.
-function integrationParams(_name) {
-  return {};
+// Las escenas de juego reciben `build`, que arma el mapa y el director cuando
+// ya se sabe cuántas habitaciones tiene el hospital (después de reset o de
+// scenarioStart). Ver la cabecera de scenes/game.js.
+const PLAY_SCENES = new Set(["game", "scenario"]);
+let cameraControls = null;
+
+function integrationParams(name) {
+  return PLAY_SCENES.has(name) ? { build: buildStage } : {};
+}
+
+async function buildStage(snapshot, config) {
+  const world = generateWorld({ rooms: snapshot.rooms.length });
+  const camera = new Camera(canvas.width, canvas.height, world.cols * TILE_SIZE, world.rows * TILE_SIZE);
+  camera.centerOn((world.spawn.tx + 0.5) * TILE_SIZE, (world.spawn.ty - 4) * TILE_SIZE);
+
+  // Un mundo nuevo por cada hospital: los controles del anterior se sueltan.
+  cameraControls?.detach();
+  cameraControls = attachCameraControls(camera, canvas);
+
+  const director = new Director(world, {
+    robots: config.robots,
+    rng: Math.random,
+    phrases: await loadPhrases(),
+  });
+  return {
+    world,
+    camera,
+    director,
+    renderer: new SquareRenderer(),
+    drawWorld,
+    wasDrag: () => cameraControls?.wasDrag() ?? false,
+  };
 }
 
 // Estado compartido entre escenas. La configuración vive en memoria aunque
@@ -65,6 +87,10 @@ export function showScene(name, params = {}) {
     }
   }
   hud.replaceChildren();
+  if (!PLAY_SCENES.has(name)) {
+    cameraControls?.detach();
+    cameraControls = null;
+  }
   currentName = name;
   current = factory({ ...integrationParams(name), ...params }, app);
   appEl.dataset.scene = name;

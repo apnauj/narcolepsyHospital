@@ -18,11 +18,36 @@ go test -race ./... # pruebas, incluida la simulación concurrente, con el detec
 La opción **1** ejecuta exactamente el escenario de la sección 6 del enunciado e imprime las cuatro consultas, marcadas como `[5.1]` a `[5.4]`.
 La opción **2** abre un menú sobre los mismos datos iniciales. Ahí se pueden provocar ataques, despertar pacientes, asignar camas, hacer las consultas y lanzar la simulación concurrente.
 
+## Interfaz gráfica (bonus)
+
+```sh
+go run ./cmd/gui    # abre http://localhost:8080 (cambia el puerto con -addr)
+```
+
+Es un mapa 2D en pixel art del hospital, servido por una API REST hecha con `net/http`, que consume un frontend HTML/JS en canvas. Desde el menú se puede:
+
+- **Iniciar:** modo libre, con las habitaciones, el personal y los pacientes de la configuración. Se agregan pacientes, doctores y camilleros, se provocan ataques y se despierta a cualquier paciente dormido.
+- **Simular caso de prueba:** el mismo escenario de `go run .`, paso a paso, con las cuatro consultas al final.
+- **Configuración:** de 2 a 10 habitaciones, personal inicial, de 1 a 3 camillas robot, velocidad y panel de colas.
+
+El paquete `hospital` no cambió para la interfaz y no sabe que existe:
+
+- La API toma una foto del estado público antes y después de cada comando y le devuelve a la vista los eventos que salen de compararlas (`api/events.go`).
+- El panel de colas se dibuja solo con esa foto, así que muestra exactamente lo que dicen `WaitingForRoom()` y `WaitingForStaff()`.
+- Las camillas robot son solo visuales: muestran cómo llega a su cama un paciente que consiguió habitación sin que nadie lo atienda.
+- El contrato entre las dos partes está en `docs/gui/CONTRACT.md`.
+
+Pruebas del frontend: `cd web && node --test "test/*.test.js"` (Node 22).
+
 ## Estructura
 
 ```
 main.go        escenario de demostración e impresión
 menu.go        menú interactivo (lectura de stdin)
+demo/          datos del escenario, compartidos por la consola y la interfaz gráfica
+api/           API REST de la interfaz gráfica (adaptador sobre hospital)
+cmd/gui/       servidor de la interfaz gráfica
+web/           frontend: mapa, entidades animadas, paneles (JS sin dependencias)
 hospital/      modelo: no imprime nada ni sabe nada de la interfaz
   person.go            Person: identidad embebida en Patient, Doctor y Orderly
   patient.go           Patient y sus estados (PatientState, NarcolepsyLevel)

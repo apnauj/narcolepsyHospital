@@ -187,13 +187,14 @@
   display: flex;
   align-items: baseline;
   gap: 16px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* una sola línea: el título del paso no mueve los botones */
   padding: 6px 12px;
+  white-space: nowrap;
 }
 
 .banner-name { font-size: 18px; }
 .banner-mode { color: var(--muted); }
-.banner-step { margin-left: auto; font-weight: bold; color: var(--sea); }
+.banner-step { margin-left: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: bold; color: var(--sea); }
 .banner-step:empty { display: none; }
 
 .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
