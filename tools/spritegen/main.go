@@ -50,6 +50,9 @@ func run(root string) error {
 	if err := writeFile(filepath.Join(assets, "sprites.json"), data); err != nil {
 		return err
 	}
+	if err := writeFile(filepath.Join(root, "tools", "spritegen", "preview.png"), out.Preview); err != nil {
+		return err
+	}
 	fmt.Printf("spritegen: %d archivos en web/assets/generated y sprites.json\n", len(out.Files))
 	return nil
 }
@@ -118,7 +121,8 @@ func Build(root string) (*Manifest, *Output, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	if err := out.PNG("generated/preview.png", prev); err != nil {
+	// La vista previa no se embebe en el binario: vive junto a la herramienta.
+	if out.Preview, err = encodePNG(prev); err != nil {
 		return nil, nil, err
 	}
 	return m, out, nil

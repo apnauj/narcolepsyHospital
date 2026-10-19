@@ -10,7 +10,7 @@ no requiere tocar código.
   se corre dos veces, `git status` queda limpio. Un test de Go
   (`TestGeneratedFilesUpToDate`) falla si lo que está en el repositorio no
   coincide con lo que genera.
-- Revisión humana: `web/assets/generated/preview.png`, una hoja de contacto
+- Revisión humana: `tools/spritegen/preview.png` (fuera de `web/`, así no se sirve ni se embebe), una hoja de contacto
   ampliada ×4 con todo el arte: personal, pacientes de muestra en todas las
   animaciones, pacientes acostados en camas, camilla y robot, objetos, tiles
   y emotes. El código no la usa.

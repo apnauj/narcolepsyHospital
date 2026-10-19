@@ -44,6 +44,7 @@ func writeFile(path string, data []byte) error {
 type Output struct {
 	Files    map[string][]byte  // ruta relativa a web/assets -> contenido
 	Canvases map[string]*Canvas // los mismos PNG como lienzo (para la vista previa)
+	Preview  []byte             // hoja de contacto: va a tools/spritegen/preview.png, no se sirve
 }
 
 func newOutput() *Output {

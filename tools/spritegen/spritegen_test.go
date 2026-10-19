@@ -174,6 +174,7 @@ func build(t *testing.T) (*Manifest, *Output) {
 		t.Fatal(err)
 	}
 	out := newOutput()
+	out.Preview = builtOut.Preview
 	for k, v := range builtOut.Files {
 		out.Files[k] = v
 	}
@@ -378,6 +379,9 @@ func TestGeneratedFilesUpToDate(t *testing.T) {
 	disk, err := os.ReadFile(filepath.Join(assets, "sprites.json"))
 	if err != nil || !bytes.Equal(disk, js) {
 		t.Error("sprites.json desactualizado; corre go run ./tools/spritegen")
+	}
+	if disk, err := os.ReadFile(filepath.Join(root, "tools", "spritegen", "preview.png")); err != nil || !bytes.Equal(disk, out.Preview) {
+		t.Error("preview.png desactualizado; corre go run ./tools/spritegen")
 	}
 	// Y no sobran PNG viejos en generated/.
 	filepath.Walk(filepath.Join(assets, "generated"), func(p string, info os.FileInfo, err error) error {
