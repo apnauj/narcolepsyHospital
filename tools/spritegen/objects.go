@@ -206,9 +206,18 @@ func decorCatalog() []decorDef {
 		{Key: "arbol@1x2", Src: kenneyColumn(packRPG, fileRPG, 13, 10, 2), Footprint: Size{1, 2}, Tags: tFloor, Source: packRPG},
 		{Key: "arbusto", Src: kenney(packRPG, fileRPG, [2]int{19, 9}), Tags: tFloor, Source: packRPG},
 		{Key: "cactus", Src: kenney(packRPG, fileRPG, [2]int{22, 9}), Tags: tFloor, Source: packRPG},
+		// Playa y cancha (ver docs/gui/CONTRACT.md, 5b). La sombrilla sobresale
+		// 8 px por arriba del tile.
+		{Key: "umbrella", Src: grids("obj_umbrella"), Tags: tFloor, Source: "propio"},
+		{Key: "shell", Src: grids("obj_shell"), Tags: tUnder, Source: "propio"},
+		{Key: "cancha@8x5", Src: procedural(func() ([]*Canvas, error) { return []*Canvas{canchaFrame()}, nil }), Footprint: Size{8, 5}, Origin: pt(0, 0), Tags: tUnder, Source: "propio"},
 		// Cafetería.
 		{Key: "table", Src: kenney(packIndoor, fileIndoor, [2]int{7, 0}), Tags: tFloor, Source: packIndoor},
 		{Key: "table@2x1", Src: kenney(packIndoor, fileIndoor, [2]int{0, 0}, [2]int{2, 0}), Footprint: Size{2, 1}, Tags: tFloor, Source: packIndoor},
+		// Comida: 1×1 encima de la mesa (decor con onTable).
+		{Key: "salchipapas", Src: grids("food_salchipapas"), Tags: tFloor, Source: "propio"},
+		{Key: "cervezaAguila", Src: grids("food_cervezaAguila"), Tags: tFloor, Source: "propio"},
+		{Key: "arrozCoco", Src: grids("food_arrozCoco"), Tags: tFloor, Source: "propio"},
 		{Key: "coffeeCart", Src: grids("obj_coffeeCart"), Tags: tFloor, Source: "propio"},
 		{Key: "menuBoard", Src: procedural(one(menuBoard)), Tags: tWall, Source: "propio"},
 		// Sala de personal.
@@ -237,6 +246,8 @@ var DecorKinds = []string{
 	"glassDoor", "hammock", "linenCart", "locker", "menuBoard", "monitor", "mural", "nightstand",
 	"noSleepSign", "palm", "pico", "plant", "receptionSign", "rug", "shelf", "sign", "sink",
 	"table", "toilet", "toolShelf", "tv", "water", "workbench",
+	// v2: playa, cancha y comida.
+	"umbrella", "shell", "cancha", "salchipapas", "cervezaAguila", "arrozCoco",
 }
 
 // benchSingle arma la banca de un tile con los extremos de la de dos.

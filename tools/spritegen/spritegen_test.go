@@ -561,3 +561,37 @@ func TestPatientInsideMattress(t *testing.T) {
 		}
 	}
 }
+
+// TestV2Art: playa, cancha, comida y camiseta de la Selección (CONTRACT 5b).
+func TestV2Art(t *testing.T) {
+	m, _ := build(t)
+	for typ, want := range map[string]string{"SAND": "playa", "SEA": "mar"} {
+		if m.Tiles.ByType[typ] != want {
+			t.Errorf("byType[%s] = %q, quiero %q", typ, m.Tiles.ByType[typ], want)
+		}
+	}
+	for _, name := range []string{"playa", "playa-orilla", "mar-orilla"} {
+		if _, ok := m.Tiles.Tiles[name]; !ok {
+			t.Errorf("falta el tile %s", name)
+		}
+	}
+	c, ok := m.Objects["cancha@8x5"]
+	if !ok || c.Frame.W != 128 || c.Frame.H != 80 || c.Footprint.W != 8 || c.Footprint.H != 5 {
+		t.Errorf("cancha@8x5 mal: %+v", c)
+	}
+	for _, k := range []string{"salchipapas", "cervezaAguila", "arrozCoco", "umbrella", "shell"} {
+		if _, ok := m.Objects[k]; !ok {
+			t.Errorf("falta el objeto %s", k)
+		}
+	}
+	pool := m.Characters.Patients["torso"]
+	n := 0
+	for _, id := range pool {
+		if id == "seleccion" {
+			n++
+		}
+	}
+	if n*5 != len(pool) {
+		t.Errorf("la Selección pesa %d de %d; debe ser 1 de cada 5", n, len(pool))
+	}
+}

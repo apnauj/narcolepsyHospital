@@ -393,6 +393,11 @@
           "sheet": "generated/characters/torso-camiseta-junior.png"
         },
         {
+          "id": "seleccion",
+          "name": "Camiseta de la Selección (amarilla)",
+          "sheet": "generated/characters/torso-seleccion.png"
+        },
+        {
           "id": "guayabera-blanca",
           "name": "Guayabera blanca",
           "sheet": "generated/characters/torso-guayabera-blanca.png"
@@ -476,12 +481,17 @@
       "torso": [
         "camiseta-junior",
         "camiseta-junior",
+        "seleccion",
+        "seleccion",
+        "seleccion",
         "guayabera-blanca",
         "guayabera-crema",
         "floreada-azul",
         "floreada-amarilla",
         "floreada-roja",
         "floreada-menta",
+        "camisilla-blanca",
+        "camisilla-blanca",
         "camisilla-blanca",
         "camisilla-blanca"
       ]
@@ -732,6 +742,29 @@
         "floor"
       ],
       "source": "kenney-roguelike-rpg-pack"
+    },
+    "arrozCoco": {
+      "sheet": "generated/objects/arrozCoco.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
     },
     "bed:down": {
       "sheet": "generated/objects/bed-down.png",
@@ -1050,6 +1083,52 @@
         "floor"
       ],
       "source": "kenney-roguelike-rpg-pack"
+    },
+    "cancha@8x5": {
+      "sheet": "generated/objects/cancha-8x5.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 128,
+        "h": 80
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 8,
+        "h": 5
+      },
+      "tags": [
+        "under"
+      ],
+      "source": "propio"
+    },
+    "cervezaAguila": {
+      "sheet": "generated/objects/cervezaAguila.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
     },
     "chair": {
       "sheet": "generated/objects/chair.png",
@@ -1719,6 +1798,29 @@
       ],
       "source": "propio"
     },
+    "salchipapas": {
+      "sheet": "generated/objects/salchipapas.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
     "shelf": {
       "sheet": "generated/objects/shelf.png",
       "x": 0,
@@ -1741,6 +1843,29 @@
         "floor"
       ],
       "source": "kenney-roguelike-indoors"
+    },
+    "shell": {
+      "sheet": "generated/objects/shell.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 16
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 0
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "under"
+      ],
+      "source": "propio"
     },
     "sign@2x1": {
       "sheet": "generated/objects/sign-2x1.png",
@@ -1926,6 +2051,29 @@
       ],
       "source": "propio"
     },
+    "umbrella": {
+      "sheet": "generated/objects/umbrella.png",
+      "x": 0,
+      "y": 0,
+      "frame": {
+        "w": 16,
+        "h": 24
+      },
+      "frames": 1,
+      "fps": 0,
+      "origin": {
+        "x": 0,
+        "y": 8
+      },
+      "footprint": {
+        "w": 1,
+        "h": 1
+      },
+      "tags": [
+        "floor"
+      ],
+      "source": "propio"
+    },
     "water": {
       "sheet": "generated/objects/water.png",
       "x": 0,
@@ -2012,8 +2160,15 @@
         "fps": 1,
         "source": "propio"
       },
+      "mar-orilla": {
+        "x": 32,
+        "y": 32,
+        "frames": 2,
+        "fps": 1,
+        "source": "propio"
+      },
       "mostrador": {
-        "x": 0,
+        "x": 64,
         "y": 32,
         "frames": 1,
         "fps": 0,
@@ -2043,6 +2198,20 @@
       "piso-menta": {
         "x": 16,
         "y": 0,
+        "frames": 1,
+        "fps": 0,
+        "source": "propio"
+      },
+      "playa": {
+        "x": 0,
+        "y": 32,
+        "frames": 1,
+        "fps": 0,
+        "source": "propio"
+      },
+      "playa-orilla": {
+        "x": 16,
+        "y": 32,
         "frames": 1,
         "fps": 0,
         "source": "propio"
@@ -2100,6 +2269,8 @@
       "HEDGE": "seto",
       "PATH": "arena",
       "ROOM_FLOOR": "piso-menta",
+      "SAND": "playa",
+      "SEA": "mar",
       "VOID": "jardin",
       "WALL": "pared",
       "WINDOW": "ventana",

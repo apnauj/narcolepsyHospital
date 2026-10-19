@@ -165,3 +165,18 @@ test("ayudas de frames y búsqueda de sprites", () => {
   assert.equal(emoteFrame(art, "alert").sx, manifest.emotes.names.alert * 16);
   assert.throws(() => emoteFrame(art, "nada"));
 });
+
+test("la camiseta de la Selección sale en 1 de cada 5 pacientes, determinista por ID", () => {
+  const art = makeArt(manifest);
+  const sel = art.characters.layers.torso.findIndex((l) => l.id === "seleccion");
+  assert.ok(sel >= 0);
+  assert.ok(art.characters.layers.torso[sel].sheet);
+  let n = 0;
+  const total = 2000;
+  for (let i = 0; i < total; i++) {
+    const a = appearanceFor(`P-${i}`, art);
+    if (a.torso === sel) n++;
+    assert.equal(appearanceFor(`P-${i}`, art).torso, a.torso);
+  }
+  assert.ok(n / total > 0.15 && n / total < 0.25, `proporción ${n / total}`);
+});

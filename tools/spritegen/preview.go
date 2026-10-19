@@ -83,6 +83,22 @@ func buildPreview(grids map[string]*Grid, m *Manifest, out *Output) (*Canvas, er
 	if row != nil {
 		rows = append(rows, row)
 	}
+	// Camiseta de la Selección: frames clave en 3 pieles y distintas poses.
+	var sel []*Canvas
+	for i, skin := range []string{"piel-1", "piel-3", "piel-4"} {
+		st, err := stackLayers(m, out, map[string]string{"skin": skin, "torso": "seleccion", "head": []string{"pelo-corto-negro", "pelo-crespo-cafe", "vueltiao"}[i], "accessory": "ninguno"})
+		if err != nil {
+			return nil, err
+		}
+		an := m.Characters.Animations
+		for _, f := range []struct {
+			anim, dir string
+			frame     int
+		}{{"idle", "down", 0}, {"idle", "up", 0}, {"idle", "left", 0}, {"walk", "right", 1}, {"attend", "down", 1}, {"push", "left", 1}} {
+			sel = append(sel, st.Crop(f.frame*CharW, an[f.anim].Rows[f.dir]*CharH, CharW, CharH))
+		}
+	}
+	rows = append(rows, sel)
 	// Pacientes acostados en cama, camilla y robot (prueba de "ride").
 	rider, err := stackLayers(m, out, people[len(people)-12])
 	if err != nil {
@@ -144,6 +160,21 @@ func buildPreview(grids map[string]*Grid, m *Manifest, out *Output) (*Canvas, er
 // previewExtras agrupa objetos, tiles y emotes en filas.
 func previewExtras(m *Manifest, out *Output) [][]*Canvas {
 	var rows [][]*Canvas
+	// Comida sobre la mesa, como la dibuja el painter (la mesa y encima la comida).
+	var food []*Canvas
+	if tb, ok := m.Objects["table"]; ok {
+		for _, k := range []string{"salchipapas", "cervezaAguila", "arrozCoco"} {
+			f, ok := m.Objects[k]
+			if !ok {
+				continue
+			}
+			c := NewCanvas(16, 16)
+			c.Blit(out.Canvases[tb.Sheet].Crop(tb.X, tb.Y, 16, 16), 0, 0)
+			c.Blit(out.Canvases[f.Sheet].Crop(f.X, f.Y, f.Frame.W, f.Frame.H), 0, 0)
+			food = append(food, c)
+		}
+		rows = append(rows, food)
+	}
 	var objs []*Canvas
 	names := make([]string, 0, len(m.Objects))
 	for k := range m.Objects {

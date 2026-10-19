@@ -53,6 +53,14 @@ export function tilePainter(art, world = null) {
       // Con perspectiva 3/4: se ve la cara si debajo hay piso; si no, el tope.
       name = isWallLike(tileAt(tx, ty + 1)) ? "pared-tope" : "pared";
     }
+    // Playa (TILE.SAND / TILE.SEA pueden no existir en un mundo viejo: se lee
+    // de forma tolerante). El mar con arena debajo lleva espuma en la orilla
+    // y la arena con mar arriba se ve mojada.
+    if (TILE.SEA !== undefined && tile === TILE.SEA && tileAt(tx, ty + 1) !== TILE.SEA && art.tiles.tiles["mar-orilla"]) {
+      name = "mar-orilla";
+    } else if (TILE.SAND !== undefined && tile === TILE.SAND && TILE.SEA !== undefined && tileAt(tx, ty - 1) === TILE.SEA && art.tiles.tiles["playa-orilla"]) {
+      name = "playa-orilla";
+    }
     if (!name || !blitTile(ctx, name, x, y)) {
       flatPainter(ctx, tile, x, y, tx, ty); // sin arte para este tile
       return;
@@ -94,6 +102,12 @@ export function tilePainter(art, world = null) {
     ctx.drawImage(sprite.image, f.sx, sy, f.sw, sh, ox, oy + dyOff, f.sw, sh);
   }
 
+  // La mesa (decor no onTable) que hay en un tile, para la comida.
+  function tableAt(tx, ty) {
+    if (!w?.decor) return null;
+    return w.decor.find((o) => !o.onTable && o.tx === tx && o.ty === ty && o.kind === "table") ?? null;
+  }
+
   painter.setWorld = (nw) => {
     w = nw;
   };
@@ -109,6 +123,13 @@ export function tilePainter(art, world = null) {
     }
     const sprite = objectFor(art, d);
     if (!sprite) return;
+    // Comida sobre una mesa: se repinta primero la mesa de ese tile, así la
+    // comida queda encima aunque el orden del decor no lo garantice.
+    if (d.onTable) {
+      const table = tableAt(d.tx, d.ty);
+      const ts = table && objectFor(art, table);
+      if (ts) blitObject(ctx, table, ts, x, y);
+    }
     // Lo de techo (ventilador: solo su eje) va en drawOverlay.
     if (sprite.tags?.includes("ceiling")) return;
     blitObject(ctx, d, sprite, x, y);

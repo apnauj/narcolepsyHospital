@@ -119,3 +119,49 @@ test("sin arte (loadArt rechaza) cae a cuadritos y colores planos", async () => 
   assert.equal(ok.drawWorld.length, 3);
   resetArtCache();
 });
+
+test("SAND y SEA tienen tile en el manifest", () => {
+  assert.equal(tileFor(art, "SAND").name, "playa");
+  assert.equal(tileFor(art, "SEA").name, "mar");
+  for (const n of ["playa-orilla", "mar-orilla"]) assert.ok(art.tiles.tiles[n], n);
+});
+
+test("playa: el mar con arena debajo lleva espuma; la arena bajo el mar, orilla mojada", () => {
+  if (TILE.SEA === undefined || TILE.SAND === undefined) return; // el mundo aún no los define
+  const painter = tilePainter(art);
+  const cols = 3;
+  const tiles = new Uint8Array(cols * 4);
+  tiles[0] = TILE.SEA; tiles[cols] = TILE.SEA; tiles[2 * cols] = TILE.SAND; tiles[3 * cols] = TILE.SAND;
+  painter.setWorld({ cols, rows: 4, tiles, decor: [] });
+  const at = (ty) => {
+    const ctx = fakeCtx();
+    painter(ctx, tiles[ty * cols], 0, ty * 16, 0, ty);
+    return ctx.calls[0];
+  };
+  assert.equal(at(0).sx, tileFor(art, "mar").x, "mar abierto");
+  assert.equal(at(1).sx, tileFor(art, "mar-orilla").x, "mar con espuma");
+  assert.equal(at(2).sx, tileFor(art, "playa-orilla").x, "arena mojada");
+  assert.equal(at(3).sx, tileFor(art, "playa").x, "arena seca");
+});
+
+test("la comida con onTable se dibuja encima de la mesa de su tile", () => {
+  const table = { tx: 5, ty: 5, kind: "table", under: TILE.WOOD };
+  const food = { tx: 5, ty: 5, kind: "salchipapas", onTable: true };
+  const painter = tilePainter(art, { cols: 10, rows: 10, tiles: new Uint8Array(100), decor: [food, table] }); // comida primero a propósito
+  const ctx = fakeCtx();
+  painter.decor(ctx, food, 80, 80);
+  const paths = ctx.calls.map((c) => c.path);
+  assert.deepEqual(paths, [objectFor(art, table).sheet, objectFor(art, food).sheet]);
+});
+
+test("cancha, sombrilla y concha existen como sprites del manifest", () => {
+  const cancha = objectFor(art, { kind: "cancha", w: 8, h: 5 });
+  assert.equal(cancha.frame.w, 128);
+  assert.equal(cancha.frame.h, 80);
+  assert.deepEqual(cancha.footprint, { w: 8, h: 5 });
+  for (const k of ["umbrella", "shell", "salchipapas", "cervezaAguila", "arrozCoco"]) {
+    assert.ok(objectFor(art, { kind: k }), k);
+  }
+  // La cancha va debajo de los personajes y no se repinta en el overlay.
+  assert.ok(cancha.tags.includes("under"));
+});

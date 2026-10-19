@@ -431,6 +431,11 @@ func Layers() map[string][]*Layer {
 	torso = append(torso, &Layer{ID: "camiseta-junior", Name: "Camiseta rayada rojiblanca", Category: "torso",
 		Prefix: "torso_junior", Anchor: "torso",
 		Slots: SlotMap{'A': n("rojo-junior"), 'P': n("azul-noche"), 'F': n("blanco")}})
+	// Selección Colombia: amarilla con cuello azul y franja roja (sin escudo
+	// ni logos). Pantaloneta azul y tenis blancos.
+	torso = append(torso, &Layer{ID: "seleccion", Name: "Camiseta de la Selección (amarilla)", Category: "torso",
+		Prefix: "torso_seleccion", Anchor: "torso",
+		Slots: SlotMap{'A': n("sol"), 'B': n("naranja"), 'C': n("azul-mar"), 'G': n("rojo-junior"), 'P': n("sombra-azul"), 'F': n("blanco")}})
 	torso = append(torso, expand(Layer{Category: "torso", Prefix: "torso_guayabera", Anchor: "torso",
 		Slots: SlotMap{'R': n("arena"), 'F': n("madera-oscura")}},
 		Variant{"guayabera-blanca", "Guayabera blanca", SlotMap{'A': n("blanco"), 'B': n("gris-claro"), 'P': n("arena"), 'R': n("arena")}},
@@ -497,8 +502,9 @@ type Preset struct {
 // le da más peso (por ejemplo "ninguno" en accesorios).
 func PatientPools() map[string][]string {
 	return map[string][]string{
-		"skin":      {"piel-1", "piel-2", "piel-3", "piel-4"},
-		"torso":     {"camiseta-junior", "camiseta-junior", "guayabera-blanca", "guayabera-crema", "floreada-azul", "floreada-amarilla", "floreada-roja", "floreada-menta", "camisilla-blanca", "camisilla-blanca"},
+		"skin": {"piel-1", "piel-2", "piel-3", "piel-4"},
+		// 15 entradas: la Selección pesa 3 (1 de cada 5 pacientes).
+		"torso":     {"camiseta-junior", "camiseta-junior", "seleccion", "seleccion", "seleccion", "guayabera-blanca", "guayabera-crema", "floreada-azul", "floreada-amarilla", "floreada-roja", "floreada-menta", "camisilla-blanca", "camisilla-blanca", "camisilla-blanca", "camisilla-blanca"},
 		"head":      {"pelo-corto-negro", "pelo-corto-cafe", "pelo-corto-canoso", "pelo-crespo-negro", "pelo-crespo-cafe", "pelo-cola-negro", "pelo-cola-cafe", "pelo-cola-canoso", "calvo", "vueltiao", "vueltiao"},
 		"accessory": {"ninguno", "ninguno", "ninguno", "mochila-wayuu", "abanico", "gafas-oscuras", "cadena"},
 	}
