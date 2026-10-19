@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vista previa de entidades</title>
+  <link rel="stylesheet" href="../css/base.css">
+  <style>
+    /* Página de prueba visual de web/js/entities/. No se embebe en el binario:
+       se sirve con `python3 -m http.server --directory web` y se abre
+       /test/entities-preview.html. Usa el hospital falso de los tests. */
+    #app { flex-wrap: wrap; align-items: flex-start; }
+    #side {
+      background: var(--panel);
+      padding: 8px 12px;
+      min-width: 260px;
+      max-width: 340px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    #side h1 { font-size: 15px; margin: 0 0 8px; }
+    #side h2 { font-size: 13px; margin: 10px 0 4px; }
+    #side label { display: block; margin: 4px 0; }
+    #side button { margin: 2px 2px 2px 0; }
+    #log, #status { white-space: pre-wrap; margin: 8px 0; font-family: monospace; font-size: 11px; }
+    #log { max-height: 160px; overflow: auto; }
+    #screen { cursor: grab; }
+    @media (max-width: 1240px) { :root { --scale: 2; } }
+    @media (max-width: 820px) { :root { --scale: 1; } }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <canvas id="screen" width="384" height="216"></canvas>
+    <div id="side">
+      <h1>Hospital de los Costeños: entidades</h1>
+      <label>Camillas robot <select id="robots"><option>1</option><option selected>2</option><option>3</option></select></label>
+      <label>Velocidad <select id="speed"><option>1</option><option selected>2</option><option>4</option></select></label>
+      <p>Flechas/WASD o arrastrar: mover. <code>Z</code>: zoom. Clic: seleccionar.</p>
+
+      <h2>Los 4 casos (cada botón reinicia)</h2>
+      <button data-case="1d">Caso 1 (doctor)</button>
+      <button data-case="1o">Caso 1 (camillero)</button>
+      <button data-case="2">Caso 2</button>
+      <button data-case="3">Caso 3</button>
+      <button data-case="4">Caso 4</button>
+      <button data-case="robots">2 traslados</button>
+      <br><button id="release">Liberar (despertar al primero dormido)</button>
+
+      <h2>Escenario</h2>
+      <button id="scenario">Reiniciar escenario</button>
+      <button id="next">Siguiente paso</button>
+      <button id="all">Pasos 1–6 seguidos</button>
+
+      <div id="status"></div>
+      <div id="log"></div>
+    </div>
+  </div>
+  <script type="module">
+    import { generateWorld, Camera, attachCameraControls, drawWorld, TILE_SIZE } from "../js/world/index.js";
+    import { Director, SquareRenderer } from "../js/entities/index.js";
+    import { FakeHospital, LOC, SCENARIO_STEPS, scenarioHospital } from "./entities-fixtures.js";
+
+    const S = TILE_SIZE;
+    const canvas = document.getElementById("screen");
+    const ctx = canvas.getContext("2d");
+    const status = document.getElementById("status");
+    const logEl = document.getElementById("log");
+    const renderer = new SquareRenderer();
+    const robotsSel = document.getElementById("robots");
+    const speedSel = document.getElementById("speed");
+
+    const world = generateWorld({ rooms: 3 });
+    const camera = new Camera(canvas.width, canvas.height, world.cols * S, world.rows * S);
+    const controls = attachCameraControls(camera, canvas);
+    camera.centerOn((world.spawn.tx + 0.5) * S, (world.spawn.ty - 8) * S);
+
+    let hospital = null;
+    let director = null;
+    let step = 0;
+    let selection = null;
+    let phrases = {};
+    fetch("../data/phrases.json").then((r) => r.json()).then((p) => { phrases = p; director?.setPhrases(p); }).catch(() => {});
+
+    function log(text) {
+      logEl.textContent = `${text}\n${logEl.textContent}`.slice(0, 4000);
+    }
+
+    function send(result) {
+      log(result.events.map((e) => `${e.type} ${e.patient ?? e.staff ?? ""}${e.room ? ` ${e.room}` : ""}${e.staff && e.patient ? ` ${e.staff}` : ""}`).join("\n") || "(sin eventos)");
+      for (const n of result.notices) log(`aviso: ${n.message}`);
+      director.apply(result.events, result.snapshot);
+    }
+
+    function reset(h) {
+      hospital = h;
+      step = 0;
+      director = new Director(world, { robots: Number(robotsSel.value), rng: Math.random, phrases });
+      director.sync(h.snapshot());
+      logEl.textContent = "";
+    }
+
+    const doctor = (id) => ({ id, name: id, kind: "doctor" });
+    const orderly = (id) => ({ id, name: id, kind: "orderly" });
+    const people = (n) => Array.from({ length: n }, (_, i) => ({ id: `P-00${i + 1}` }));
+
+    // Cada caso arma un hospital mínimo y dispara sus ataques con un poco de
+    // paseo antes, para que se vea a los pacientes caer donde están.
+    const CASES = {
+      "1d": () => [new FakeHospital({ staff: [doctor("D-01")], patients: people(1) }), ["P-001"]],
+      "1o": () => [new FakeHospital({ staff: [orderly("O-01")], patients: people(1) }), ["P-001"]],
+      "2": () => [new FakeHospital({ rooms: [101], staff: [doctor("D-01"), orderly("O-01")], patients: people(2) }), ["P-001", "P-002"]],
+      "3": () => [new FakeHospital({ rooms: [101, 102], staff: [doctor("D-01")], patients: people(2) }), ["P-001", "P-002"]],
+      "4": () => [new FakeHospital({ rooms: [101], staff: [doctor("D-01")], patients: people(2) }), ["P-001", "P-002"]],
+      robots: () => [new FakeHospital({ rooms: [101, 102], staff: [doctor("D-01"), doctor("D-02")], patients: people(2) }), ["P-001", "P-002"]],
+    };
+
+    for (const btn of document.querySelectorAll("[data-case]")) {
+      btn.addEventListener("click", () => {
+        const [h, attacks] = CASES[btn.dataset.case]();
+        reset(h);
+        attacks.forEach((id, i) => setTimeout(() => {
+          if (hospital === h) send(h.attack(id, director.locationOf(id) === "Main Hallway" ? LOC.mainHallway : LOC.eastHallway));
+        }, 2500 + i * (btn.dataset.case === "robots" ? 200 : 1500)));
+      });
+    }
+
+    document.getElementById("release").addEventListener("click", () => {
+      const p = hospital?.patients.find((q) => q.asleep);
+      if (p) send(hospital.wake(p.id));
+    });
+
+    document.getElementById("scenario").addEventListener("click", () => reset(scenarioHospital()));
+    document.getElementById("next").addEventListener("click", () => {
+      if (!hospital || hospital.mode !== "scenario") reset(scenarioHospital());
+      if (step >= SCENARIO_STEPS.length) return log("(fin del escenario)");
+      log(`— Paso ${step + 1}: ${SCENARIO_STEPS[step].title} —`);
+      send(SCENARIO_STEPS[step++].run(hospital));
+    });
+    document.getElementById("all").addEventListener("click", () => {
+      reset(scenarioHospital());
+      SCENARIO_STEPS.forEach((s, i) => setTimeout(() => {
+        log(`— Paso ${i + 1}: ${s.title} —`);
+        send(s.run(hospital));
+        step = i + 1;
+      }, 1500 + i * 300));
+    });
+    robotsSel.addEventListener("change", () => reset(scenarioHospital()));
+
+    canvas.addEventListener("click", (e) => {
+      if (controls.wasDrag()) return;
+      const box = canvas.getBoundingClientRect();
+      const w = camera.toWorld(((e.clientX - box.left) * canvas.width) / box.width, ((e.clientY - box.top) * canvas.height) / box.height);
+      selection = director.pick(w.x, w.y);
+    });
+
+    function describe() {
+      const lines = [`robots libres: ${director.robotsFree()}/${director.robots.length}`];
+      for (const e of director.entities) {
+        const extra = e.kind === "patient" ? ` ${director.locationOf(e.id) ?? "?"}${director.bedOf(e.id) ? ` cama ${director.bedOf(e.id)}` : ""}${e.flags.alert ? " ❗" : ""}` : "";
+        const mark = selection?.id === e.id ? "▶ " : "  ";
+        lines.push(`${mark}${e.id.padEnd(6)} ${director.visualStatus(e.id).padEnd(16)}${extra}`);
+      }
+      status.textContent = lines.join("\n");
+    }
+
+    let last = performance.now();
+    function frame(now) {
+      const dt = Math.min(0.1, (now - last) / 1000) * Number(speedSel.value);
+      last = now;
+      director.update(dt);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      drawWorld(ctx, world, camera);
+      director.draw(ctx, camera, renderer);
+      const sel = selection && director.entity(selection.id);
+      if (sel) {
+        const p = camera.toScreen(sel.x, sel.y);
+        ctx.strokeStyle = "#d62839";
+        ctx.strokeRect(Math.round(p.x - 8 * camera.zoom) + 0.5, Math.round(p.y - 8 * camera.zoom) + 0.5, 16 * camera.zoom, 16 * camera.zoom);
+      }
+      describe();
+      requestAnimationFrame(frame);
+    }
+
+    reset(scenarioHospital());
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>
