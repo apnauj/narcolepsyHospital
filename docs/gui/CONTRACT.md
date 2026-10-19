@@ -219,6 +219,24 @@ SpriteRenderer(art)                  // misma interfaz que SquareRenderer (ola 4
 tilePainter(art)                     // misma firma que flatPainter (ola 4)
 ```
 
+## 5b. Ampliación v2: playa, cancha, comida y camiseta de la Selección
+
+Estos nombres los comparten `web/js/world/` (dónde va cada cosa) y el arte (`tools/spritegen`, `sprites.json` y `web/js/art/`, que definen cómo se ve).
+
+- **Tiles nuevos en `TILE`:**
+  - `SAND`: arena, caminable.
+  - `SEA`: mar, no caminable.
+  - El mundo agrega una franja de playa y mar a lo largo de **todo el borde norte**: el hospital queda a la orilla del mar. Esto vale también para las disposiciones en L y U, que crecen hacia el norte.
+- **Cancha de fútbol:**
+  - Va en el jardín exterior, cerca de la entrada, como un decor con `kind: "cancha"`, `w: 8`, `h: 5`. Su huella es caminable: los pacientes pueden pasear por ella, y es un poi `kind: "cancha"`.
+  - Los arcos se dibujan dentro del mismo sprite.
+- **Comida en la cafetería**, como decor de 1×1 encima de las mesas, con `onTable: true`. Se dibujan después del decor de la mesa del mismo tile:
+  - `kind: "salchipapas"`;
+  - `kind: "cervezaAguila"`: botella amarilla y roja, sin el logo oficial de la marca;
+  - `kind: "arrozCoco"`: plato de arroz de coco con patacones.
+- **Camiseta de la Selección Colombia:** capa de torso `seleccion` (amarilla, con detalles azules y rojos, sin el escudo de la FCF). La usa una parte de los pacientes en `appearanceFor`.
+- **Camas en vertical** (`dir` `"down"` o `"up"`): el paciente acostado se dibuja **a lo largo** de la cama, con la cabeza en la cabecera.
+
 ## 6. Dueño de cada archivo
 
 | Rama | Es dueña de |
