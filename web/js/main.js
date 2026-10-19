@@ -11,9 +11,10 @@ import { createMenuScene } from "./scenes/menu.js";
 import { createConfigScene } from "./scenes/config.js";
 import { createGameScene } from "./scenes/game.js";
 import { createScenarioScene } from "./scenes/scenario.js";
-import { Camera, TILE_SIZE, attachCameraControls, drawWorld, generateWorld } from "./world/index.js";
+import { Camera, TILE_SIZE, attachCameraControls, drawWorld, flatPainter, generateWorld } from "./world/index.js";
 import { Director, SquareRenderer } from "./entities/index.js";
 import { loadPhrases } from "./ui/bubble.js";
+import { SpriteRenderer, loadArt, getArt, tilePainter } from "./art/index.js";
 
 const appEl = document.getElementById("app");
 const canvas = document.getElementById("screen");
@@ -37,6 +38,17 @@ function integrationParams(name) {
   return PLAY_SCENES.has(name) ? { build: buildStage } : {};
 }
 
+// Arte cacheado: se carga una vez y, si falla, se recuerda el fallo para no
+// reintentar en cada partida (se cae a cuadritos y colores planos).
+let artPromise = null;
+function ensureArt() {
+  artPromise ??= (getArt() ? Promise.resolve(getArt()) : loadArt()).catch((err) => {
+    console.warn("no se pudo cargar el arte; se usan cuadritos de colores:", err);
+    return null;
+  });
+  return artPromise;
+}
+
 async function buildStage(snapshot, config) {
   const world = generateWorld({ rooms: snapshot.rooms.length });
   const camera = new Camera(canvas.width, canvas.height, world.cols * TILE_SIZE, world.rows * TILE_SIZE);
@@ -51,12 +63,30 @@ async function buildStage(snapshot, config) {
     rng: Math.random,
     phrases: await loadPhrases(),
   });
+
+  let renderer = new SquareRenderer();
+  let draw = drawWorld;
+  const art = await ensureArt();
+  if (art) {
+    const painter = tilePainter(art, world);
+    renderer = new SpriteRenderer(art, { world });
+    draw = (c, w, cam) => drawWorld(c, w, cam, painter);
+    // Segundo pase de la decoración alta (copas, ventiladores) sobre los
+    // personajes: se engancha al final de director.draw.
+    const drawEntities = director.draw.bind(director);
+    director.draw = (c, cam, r) => {
+      drawEntities(c, cam, r);
+      painter.drawOverlay(c, world, cam);
+    };
+  } else {
+    draw = (c, w, cam) => drawWorld(c, w, cam, flatPainter);
+  }
   return {
     world,
     camera,
     director,
-    renderer: new SquareRenderer(),
-    drawWorld,
+    renderer,
+    drawWorld: draw,
     wasDrag: () => cameraControls?.wasDrag() ?? false,
   };
 }
