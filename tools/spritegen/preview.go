@@ -88,13 +88,20 @@ func buildPreview(grids map[string]*Grid, m *Manifest, out *Output) (*Canvas, er
 	if err != nil {
 		return nil, err
 	}
-	sr := m.Characters.Animations["stretcher"].Rows["down"]
-	lying := rider.Crop(0, sr*CharH, CharW, CharH)
 	var rides []*Canvas
-	for _, k := range []string{"bed:right", "bed:left", "bed:down", "bed:up"} {
-		rides = append(rides, withRider(out, m.Objects[k], lying))
+	lyingFor := func(dir string) *Canvas {
+		sr := m.Characters.Animations["stretcher"].Rows[dir]
+		return rider.Crop(0, sr*CharH, CharW, CharH)
 	}
-	rides = append(rides, withRider(out, m.Stretcher, lying), withRider(out, m.Robot, lying))
+	for _, d := range []string{"right", "left", "down", "up"} {
+		rides = append(rides, withRider(out, m.Objects["bed:"+d], lyingFor(d)))
+	}
+	rides = append(rides, withRider(out, m.Stretcher, lyingFor("right")), withRider(out, m.Robot, lyingFor("right")))
+	// Despertando en cama (sentado), una cama por dirección.
+	wr := m.Characters.Animations["wake"].Rows["down"]
+	for _, d := range []string{"right", "left", "down", "up"} {
+		rides = append(rides, withSitter(out, m.Objects["bed:"+d], rider.Crop(CharW, wr*CharH, CharW, CharH)))
+	}
 	rows = append(rows, rides)
 	// Objetos, tiles y emotes.
 	rows = append(rows, previewExtras(m, out)...)
@@ -181,7 +188,9 @@ func previewExtras(m *Manifest, out *Output) [][]*Canvas {
 }
 
 // withRider dibuja el primer frame de un objeto con el paciente acostado
-// encima, aplicando Ride igual que lo haría el renderer.
+// encima (el frame de la fila de la dirección de la cama, sin girar
+// nada), aplicando Ride igual que lo haría el renderer, y repinta encima el
+// rectángulo Cover (la manta).
 func withRider(out *Output, e SpriteEntry, lying *Canvas) *Canvas {
 	obj := out.Canvases[e.Sheet].Crop(e.X, e.Y, e.Frame.W, e.Frame.H)
 	const pad = 10
@@ -190,15 +199,30 @@ func withRider(out *Output, e SpriteEntry, lying *Canvas) *Canvas {
 	if e.Ride == nil {
 		return c
 	}
-	r := lying
-	if e.Ride.FlipX {
-		r = r.Mirror()
-	}
-	for a := 0; a < e.Ride.Rotate; a += 90 {
-		r = r.RotateCW()
-	}
-	c.Blit(r, pad+e.Ride.X-r.W/2, pad+e.Ride.Y-r.H/2)
+	c.Blit(lying, pad+e.Ride.X-lying.W/2, pad+e.Ride.Y-lying.H/2)
+	coverOver(c, obj, e, pad)
 	return c
+}
+
+// withSitter dibuja al paciente sentado (wake) sobre una cama.
+func withSitter(out *Output, e SpriteEntry, sit *Canvas) *Canvas {
+	obj := out.Canvases[e.Sheet].Crop(e.X, e.Y, e.Frame.W, e.Frame.H)
+	const pad = 10
+	c := NewCanvas(obj.W+2*pad, obj.H+2*pad)
+	c.Blit(obj, pad, pad)
+	if e.Sit != nil {
+		c.Blit(sit, pad+e.Sit.X-sit.W/2, pad+e.Sit.Y-sit.H/2)
+		coverOver(c, obj, e, pad)
+	}
+	return c
+}
+
+// coverOver repinta la manta de la cama sobre el paciente.
+func coverOver(c, obj *Canvas, e SpriteEntry, pad int) {
+	if e.Cover == nil {
+		return
+	}
+	c.Blit(obj.Crop(e.Cover.X, e.Cover.Y, e.Cover.W, e.Cover.H), pad+e.Cover.X, pad+e.Cover.Y)
 }
 
 // scale amplía con vecino más cercano.

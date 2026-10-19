@@ -26,10 +26,17 @@ export const FOOT_DY = 4;
 const SHADOW_ALPHA = 0.35;
 const PORTRAIT = 20;
 
-// Animaciones en las que el cuerpo va acostado (cabeza a la izquierda).
+// Animaciones en las que el cuerpo va acostado. Sus filas en la hoja son
+// direccionales: la dirección es la de la cama (de la cabecera a los pies).
 const LYING = new Set(["sleep", "stretcher"]);
 // Animaciones que, en una cama, se dibujan con el ride de la cama.
 const IN_BED = new Set(["sleep", "wake"]);
+
+// Dirección de la fila acostada para quien duerme en el suelo.
+function floorLie(dir) {
+  if (dir === "right") return "left"; // cabeza a la derecha
+  return "right"; // cabeza a la izquierda
+}
 
 const DIR_VEC = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 
@@ -120,21 +127,53 @@ export class SpriteRenderer {
     if (e.kind === "patient" && e.carriedBy) {
       this.drawCarried(ctx, e, layers, rect, cx, cy);
     } else if (e.kind === "patient" && IN_BED.has(anim) && this.beds.has(`${cx},${cy}`)) {
-      const { decor, sprite } = this.beds.get(`${cx},${cy}`);
-      const left = decor.tx * 16 - sprite.origin.x;
-      const up = decor.ty * 16 - sprite.origin.y;
-      // Dormido: acostado con el giro de la cama; despertando: sentado, sin girar.
-      this.drawRide(ctx, layers, rect, left, up, sprite.ride, LYING.has(anim));
+      this.drawInBed(ctx, e, anim, layers, cx, cy);
     } else {
       this.drawShadow(ctx, bx, by, 1);
-      const flip = anim === "sleep" && dir === "right";
-      this.drawLayers(ctx, layers, rect, bx - art.characters.anchor.x, by - art.characters.anchor.y, flip);
+      // Dormido fuera de una cama: acostado con la cabeza hacia el lado
+      // contrario al que mira (mirando a la derecha, cabeza a la derecha).
+      const lyRect = LYING.has(anim) ? characterFrame(art, anim, floorLie(dir), frame) : rect;
+      this.drawLayers(ctx, layers, lyRect, bx - art.characters.anchor.x, by - art.characters.anchor.y, false);
     }
+  }
+
+  /**
+   * Paciente en una cama. Dormido: el frame acostado de la fila de la
+   * dirección de la cama (cabeza en la cabecera, a lo largo del colchón),
+   * ubicado con el `ride` del sprite. Despertando: sentado (frame `wake`,
+   * sin girar) en el punto `sit` (o en `ride` si el sprite no trae `sit`).
+   * Al final repinta la manta (`cover`) encima del paciente.
+   */
+  drawInBed(ctx, e, anim, layers, cx, cy) {
+    const { decor, sprite } = this.beds.get(`${cx},${cy}`);
+    const left = decor.tx * 16 - sprite.origin.x;
+    const top = decor.ty * 16 - sprite.origin.y;
+    const dir = decor.dir ?? "down";
+    const frame = animFrame(this.art, anim, e.animTime ?? 0);
+    if (LYING.has(anim)) {
+      const rect = characterFrame(this.art, anim, dir, frame);
+      this.drawRide(ctx, layers, rect, left, top, sprite.ride, true);
+    } else {
+      const rect = characterFrame(this.art, anim, "down", frame);
+      const at = sprite.sit ? { x: sprite.sit.x, y: sprite.sit.y, rotate: 0, flipX: false } : { ...sprite.ride, rotate: 0, flipX: false };
+      this.drawRide(ctx, layers, rect, left, top, at, false);
+    }
+    this.drawCover(ctx, sprite, left, top);
+  }
+
+  /** Repinta la manta de una cama encima del paciente. */
+  drawCover(ctx, sprite, left, top) {
+    const c = sprite.cover;
+    if (!c || !sprite.image) return;
+    const f = spriteFrame(sprite, 0);
+    ctx.drawImage(sprite.image, f.sx + c.x, f.sy + c.y, c.w, c.h, left + c.x, top + c.y, c.w, c.h);
   }
 
   // Paciente sobre el robot o sobre la camilla.
   drawCarried(ctx, e, layers, rect, cx, cy) {
     const art = this.art;
+    // Camilla y robot son horizontales: cabeza a la izquierda (fila "right").
+    if (LYING.has(e.anim)) rect = characterFrame(art, e.anim, "right", animFrame(art, e.anim, e.animTime ?? 0));
     const bx = cx;
     const by = cy + FOOT_DY;
     const robot = this.robotAt.get(e.id);

@@ -158,7 +158,8 @@ export function tilePainter(art, world = null) {
         const sprite = objectFor(art, d);
         if (!sprite) continue;
         if (sprite.tags?.includes("ceiling")) list.push({ d, sprite, ceiling: true });
-        else if (sprite.tags?.includes("floor") && sprite.origin?.y > 0) list.push({ d, sprite, ceiling: false });
+        // Las camas (tienen `mattress`) no se repintan: taparían al paciente.
+        else if (sprite.tags?.includes("floor") && sprite.origin?.y > 0 && !sprite.mattress) list.push({ d, sprite, ceiling: false });
       }
       overlays.set(wd, list);
     }

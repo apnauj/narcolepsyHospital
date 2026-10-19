@@ -77,18 +77,34 @@ type LayerEntry struct {
 //   - Ride: dónde se dibuja el paciente acostado encima (cama, camilla,
 //     robot).
 type SpriteEntry struct {
-	Sheet     string   `json:"sheet"`
-	X         int      `json:"x"`
-	Y         int      `json:"y"`
-	Frame     Size     `json:"frame"`
-	Frames    int      `json:"frames"`
-	FPS       float64  `json:"fps"`
-	Anchor    *Point   `json:"anchor,omitempty"`
-	Origin    *Point   `json:"origin,omitempty"`
-	Footprint *Size    `json:"footprint,omitempty"`
-	Ride      *Ride    `json:"ride,omitempty"`
-	Tags      []string `json:"tags,omitempty"`
-	Source    string   `json:"source"`
+	Sheet     string  `json:"sheet"`
+	X         int     `json:"x"`
+	Y         int     `json:"y"`
+	Frame     Size    `json:"frame"`
+	Frames    int     `json:"frames"`
+	FPS       float64 `json:"fps"`
+	Anchor    *Point  `json:"anchor,omitempty"`
+	Origin    *Point  `json:"origin,omitempty"`
+	Footprint *Size   `json:"footprint,omitempty"`
+	Ride      *Ride   `json:"ride,omitempty"`
+	// Sit: centro del frame del paciente sentado (animación "wake") sobre
+	// la cama, sin giro.
+	Sit *Point `json:"sit,omitempty"`
+	// Mattress: rectángulo del colchón; el paciente acostado queda dentro.
+	Mattress *Rect `json:"mattress,omitempty"`
+	// Cover: parte del sprite (la manta) que se repinta encima del
+	// paciente para que parezca tapado.
+	Cover  *Rect    `json:"cover,omitempty"`
+	Tags   []string `json:"tags,omitempty"`
+	Source string   `json:"source"`
+}
+
+// Rect es un rectángulo en pixeles del sprite.
+type Rect struct {
+	X int `json:"x"`
+	Y int `json:"y"`
+	W int `json:"w"`
+	H int `json:"h"`
 }
 
 // Ride ubica al paciente acostado (frame "stretcher" o "sleep"): el centro

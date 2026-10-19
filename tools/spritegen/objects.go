@@ -35,6 +35,9 @@ type decorDef struct {
 	Footprint Size   // en tiles; 0 = 1×1
 	Origin    *Point // nil = centrado en la huella y apoyado abajo
 	Ride      *Ride
+	Sit       *Point
+	Mattress  *Rect
+	Cover     *Rect
 	Tags      []string
 	Source    string // "propio" o el pack
 }
@@ -156,10 +159,16 @@ func decorCatalog() []decorDef {
 	bedV := grids("obj_bed_v")
 	return []decorDef{
 		// Habitaciones. La cama ocupa 2 tiles desde la cabecera (tx, ty).
-		{Key: "bed:right", Src: bed, Footprint: Size{2, 1}, Origin: pt(0, 0), Ride: &Ride{17, 5, 0, false}, Tags: tFloor, Source: "propio"},
-		{Key: "bed:left", Src: transformed(bed, (*Canvas).Mirror), Footprint: Size{2, 1}, Origin: pt(16, 0), Ride: &Ride{15, 5, 0, true}, Tags: tFloor, Source: "propio"},
-		{Key: "bed:down", Src: bedV, Footprint: Size{1, 2}, Origin: pt(0, 0), Ride: &Ride{10, 16, 90, false}, Tags: tFloor, Source: "propio"},
-		{Key: "bed:up", Src: transformed(bedV, (*Canvas).FlipV), Footprint: Size{1, 2}, Origin: pt(0, 16), Ride: &Ride{6, 15, 270, false}, Tags: tFloor, Source: "propio"},
+		// El paciente acostado sale de la fila de la hoja de personajes que
+		// corresponde a la dirección de la cama (sin girar en el canvas).
+		{Key: "bed:right", Src: bed, Footprint: Size{2, 1}, Origin: pt(0, 0), Ride: &Ride{14, 4, 0, false}, Sit: pt(10, 2),
+			Mattress: &Rect{5, 0, 22, 14}, Cover: &Rect{17, 0, 10, 14}, Tags: tFloor, Source: "propio"},
+		{Key: "bed:left", Src: transformed(bed, (*Canvas).Mirror), Footprint: Size{2, 1}, Origin: pt(16, 0), Ride: &Ride{18, 4, 0, false}, Sit: pt(22, 2),
+			Mattress: &Rect{5, 0, 22, 14}, Cover: &Rect{5, 0, 10, 14}, Tags: tFloor, Source: "propio"},
+		{Key: "bed:down", Src: bedV, Footprint: Size{1, 2}, Origin: pt(0, 0), Ride: &Ride{8, 13, 0, false}, Sit: pt(8, 10),
+			Mattress: &Rect{1, 4, 14, 23}, Cover: &Rect{1, 18, 14, 9}, Tags: tFloor, Source: "propio"},
+		{Key: "bed:up", Src: transformed(bedV, (*Canvas).FlipV), Footprint: Size{1, 2}, Origin: pt(0, 16), Ride: &Ride{8, 19, 0, false}, Sit: pt(8, 22),
+			Mattress: &Rect{1, 5, 14, 23}, Cover: &Rect{1, 5, 14, 9}, Tags: tFloor, Source: "propio"},
 		{Key: "monitor", Src: grids("obj_monitor_0", "obj_monitor_1", "obj_monitor_2"), FPS: 4, Tags: tFloor, Source: "propio"},
 		{Key: "nightstand", Src: kenney(packIndoor, fileIndoor, [2]int{0, 12}), Tags: tFloor, Source: packIndoor},
 		{Key: "plant", Src: kenney(packIndoor, fileIndoor, [2]int{16, 0}), Tags: tFloor, Source: packIndoor},
@@ -320,6 +329,7 @@ func buildObjects(gs map[string]*Grid, vendor string, m *Manifest, out *Output) 
 			o = pt((e.Frame.W-fp.W*16)/2, e.Frame.H-fp.H*16)
 		}
 		e.Origin, e.Footprint, e.Ride, e.Tags, e.Source = o, &fp, d.Ride, d.Tags, d.Source
+		e.Sit, e.Mattress, e.Cover = d.Sit, d.Mattress, d.Cover
 		if _, dup := m.Objects[d.Key]; dup {
 			return fmt.Errorf("objeto repetido %q", d.Key)
 		}

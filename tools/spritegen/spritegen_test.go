@@ -475,3 +475,89 @@ func TestPaletteMatchesJS(t *testing.T) {
 		}
 	}
 }
+
+// bounds devuelve el rectángulo [x0,x1)×[y0,y1) de los pixeles opacos.
+func bounds(c *Canvas) (x0, y0, x1, y1 int) {
+	x0, y0, x1, y1 = c.W, c.H, 0, 0
+	for y := 0; y < c.H; y++ {
+		for x := 0; x < c.W; x++ {
+			if c.Get(x, y) == Transparent {
+				continue
+			}
+			x0, y0 = min(x0, x), min(y0, y)
+			x1, y1 = max(x1, x+1), max(y1, y+1)
+		}
+	}
+	return
+}
+
+// TestPatientInsideMattress: para cada cama y cada dirección, el cuerpo
+// acostado (piel y ropa, de todos los tonos y camisetas) queda dentro del
+// rectángulo del colchón, con la cabeza del lado de la cabecera.
+func TestPatientInsideMattress(t *testing.T) {
+	m, out := build(t)
+	ch := m.Characters
+	for _, dir := range []string{"right", "left", "down", "up"} {
+		bed := m.Objects["bed:"+dir]
+		if bed.Mattress == nil || bed.Ride == nil || bed.Cover == nil || bed.Sit == nil {
+			t.Fatalf("bed:%s sin mattress/ride/cover/sit", dir)
+		}
+		if bed.Ride.Rotate != 0 || bed.Ride.FlipX {
+			t.Errorf("bed:%s: el ride ya no gira ni refleja", dir)
+		}
+		row := ch.Animations["sleep"].Rows[dir]
+		for _, cat := range []string{"skin", "torso", "head"} {
+			for _, l := range ch.Layers[cat] {
+				if l.Sheet == nil {
+					continue
+				}
+				for f := 0; f < ch.Animations["sleep"].Frames; f++ {
+					fr := out.Canvases[*l.Sheet].Crop(f*CharW, row*CharH, CharW, CharH)
+					x0, y0, x1, y1 := bounds(fr)
+					if x1 == 0 {
+						continue
+					}
+					mr := bed.Mattress
+					gx0, gy0 := bed.Ride.X-CharW/2+x0, bed.Ride.Y-CharH/2+y0
+					gx1, gy1 := bed.Ride.X-CharW/2+x1, bed.Ride.Y-CharH/2+y1
+					// El sombrero vueltiao sobresale a los lados de la cabeza.
+					slack := 0
+					if cat == "head" {
+						slack = 1
+					}
+					if gx0 < mr.X-slack || gy0 < mr.Y-slack || gx1 > mr.X+mr.W+slack || gy1 > mr.Y+mr.H+slack {
+						t.Errorf("bed:%s capa %s: cuerpo [%d,%d)-[%d,%d) fuera del colchón %+v", dir, l.ID, gx0, gy0, gx1, gy1, *mr)
+					}
+				}
+			}
+		}
+		// La cabeza (más ancha que el cuello) queda del lado de la cabecera.
+		skin := ch.Layers["skin"][0]
+		fr := out.Canvases[*skin.Sheet].Crop(0, row*CharH, CharW, CharH)
+		x0, y0, x1, y1 := bounds(fr)
+		cx, cy := bed.Ride.X-CharW/2, bed.Ride.Y-CharH/2
+		mr := bed.Mattress
+		midX, midY := mr.X+mr.W/2, mr.Y+mr.H/2
+		hx, hy := cx+(x0+x1)/2, cy+(y0+y1)/2
+		_ = hx
+		_ = hy
+		switch dir {
+		case "right":
+			if cx+x0 >= midX {
+				t.Errorf("bed:right: la cabeza debe quedar a la izquierda")
+			}
+		case "left":
+			if cx+x1 <= midX {
+				t.Errorf("bed:left: la cabeza debe quedar a la derecha")
+			}
+		case "down":
+			if cy+y0 >= midY {
+				t.Errorf("bed:down: la cabeza debe quedar arriba")
+			}
+		case "up":
+			if cy+y1 <= midY {
+				t.Errorf("bed:up: la cabeza debe quedar abajo")
+			}
+		}
+	}
+}

@@ -92,6 +92,15 @@ test("overlay: la copa de la palmera se repinta sobre los personajes", () => {
   assert.equal(ctx.calls[0].sh, sprite.origin.y, "solo lo que sobresale de la huella");
 });
 
+test("overlay: las camas no se repintan encima del paciente (bed:up sobresale)", () => {
+  const painter = tilePainter(art);
+  const world = { cols: 10, rows: 10, decor: [{ tx: 4, ty: 4, kind: "bed", dir: "up", under: TILE.ROOM_FLOOR }], tiles: new Uint8Array(100) };
+  const camera = { offsetX: 0, offsetY: 0, zoom: 1, visibleW: 160, visibleH: 160 };
+  const ctx = fakeCtx();
+  painter.drawOverlay(ctx, world, camera);
+  assert.equal(ctx.calls.length, 0);
+});
+
 test("sin arte (loadArt rechaza) cae a cuadritos y colores planos", async () => {
   resetArtCache();
   const warns = [];

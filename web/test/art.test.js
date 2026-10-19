@@ -146,7 +146,8 @@ test("ayudas de frames y búsqueda de sprites", () => {
   const fw = manifest.characters.frame.w;
   const walkLeft = characterFrame(art, "walk", "left", 2);
   assert.deepEqual(walkLeft, { sx: 2 * fw, sy: manifest.characters.animations.walk.rows.left * manifest.characters.frame.h, sw: fw, sh: manifest.characters.frame.h });
-  assert.equal(characterFrame(art, "sleep", "up", 0).sy, characterFrame(art, "sleep", "down", 0).sy);
+  assert.notEqual(characterFrame(art, "sleep", "up", 0).sy, characterFrame(art, "sleep", "down", 0).sy);
+  assert.equal(characterFrame(art, "wake", "up", 0).sy, characterFrame(art, "wake", "down", 0).sy);
   assert.equal(animFrame(art, "walk", 0), 0);
   const walk = manifest.characters.animations.walk;
   assert.equal(animFrame(art, "walk", (walk.frames + 1) / walk.fps), 1);

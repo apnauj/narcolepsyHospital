@@ -27,15 +27,20 @@ var Dirs = []string{"down", "up", "left", "right"}
 // Pose describe un frame: qué piernas, cuánto se mueve cada parte y qué
 // efectos lleva.
 type Pose struct {
-	Dir     string   // down|up|left|right (right = left reflejado)
-	Legs    string   // stand|stepA|stepB|crouch
-	HeadDY  int      // desplazamiento vertical de la cabeza
-	TorsoDY int      // desplazamiento vertical del torso
-	DX, DY  int      // desplazamiento del frame entero
-	Closed  bool     // ojos cerrados
-	Lying   bool     // acostado: se gira el cuerpo con la cabeza a la izquierda
-	Extra   []string // partes de pose extra (manos al frente, etc.)
-	FX      string   // efecto encima, solo en la capa base ("!", "z"...)
+	Dir     string // down|up|left|right (right = left reflejado)
+	Legs    string // stand|stepA|stepB|crouch
+	HeadDY  int    // desplazamiento vertical de la cabeza
+	TorsoDY int    // desplazamiento vertical del torso
+	DX, DY  int    // desplazamiento del frame entero
+	Closed  bool   // ojos cerrados
+	// Lie: acostado. "left" = cabeza a la izquierda (cuerpo girado), "right"
+	// = su reflejo, "down" = cabeza arriba y pies abajo (cama vertical,
+	// de frente) y "up" = cabeza abajo (el frame de "down" girado 180°).
+	// El nombre es la dirección de la cabeza a los pies del paciente en
+	// pantalla, al revés: "down" = pies hacia abajo.
+	Lie   string
+	Extra []string // partes de pose extra (manos al frente, etc.)
+	FX    string   // efecto encima, solo en la capa base ("!", "z"...)
 }
 
 // Anim es una fila (o 4 filas, una por dirección) de la hoja.
@@ -83,17 +88,21 @@ var Animations = []Anim{
 		return []Pose{
 			{Dir: "down", Legs: "stand", FX: "fx_alert"},
 			{Dir: "down", Legs: "stepA", DX: 1, HeadDY: 1, Closed: true, FX: "fx_dizzy"},
-			{Dir: "down", Legs: "stand", Closed: true, Lying: true},
+			{Dir: "down", Legs: "stand", Closed: true, Lie: "left"},
 		}
 	}},
-	{Name: "sleep", FPS: 1.5, Loop: true, Frames: func(string) []Pose {
+	// sleep y stretcher van acostados y SÍ son direccionales: la dirección es
+	// la de la cama, de la cabecera a los pies ("right" = cabeza a la
+	// izquierda; "down" = cabeza arriba). Así el paciente queda a lo largo de
+	// la cama en las 4 orientaciones sin girar nada en el canvas.
+	{Name: "sleep", FPS: 1.5, Loop: true, Directional: true, Frames: func(d string) []Pose {
 		return []Pose{
-			{Dir: "down", Legs: "stand", Closed: true, Lying: true, FX: "fx_z1"},
-			{Dir: "down", Legs: "stand", Closed: true, Lying: true, FX: "fx_z2"},
+			{Dir: "down", Legs: "stand", Closed: true, Lie: lieFor(d), FX: "fx_z1"},
+			{Dir: "down", Legs: "stand", Closed: true, Lie: lieFor(d), FX: "fx_z2"},
 		}
 	}},
-	{Name: "stretcher", FPS: 0, Loop: false, Frames: func(string) []Pose {
-		return []Pose{{Dir: "down", Legs: "stand", Closed: true, Lying: true}}
+	{Name: "stretcher", FPS: 0, Loop: false, Directional: true, Frames: func(d string) []Pose {
+		return []Pose{{Dir: "down", Legs: "stand", Closed: true, Lie: lieFor(d)}}
 	}},
 	{Name: "wake", FPS: 3, Loop: false, Frames: func(string) []Pose {
 		return []Pose{
@@ -102,6 +111,18 @@ var Animations = []Anim{
 			{Dir: "down", Legs: "stand", HeadDY: -1, DY: -1, Closed: true, FX: "fx_spark"},
 		}
 	}},
+}
+
+// lieFor traduce la dirección de la cama (de la cabecera a los pies) a la
+// postura acostada.
+func lieFor(dir string) string {
+	switch dir {
+	case "right":
+		return "left" // pies a la derecha: cabeza a la izquierda
+	case "left":
+		return "right"
+	}
+	return dir // down: cabeza arriba; up: cabeza abajo
 }
 
 // SheetRow es una fila calculada de la hoja.
@@ -221,18 +242,32 @@ func (c *Composer) need(name string) (*Grid, error) {
 
 // Frame dibuja una pose para una capa.
 func (c *Composer) Frame(l *Layer, p Pose) (*Canvas, error) {
-	if p.Lying {
+	if p.Lie != "" {
 		up := p
-		up.Lying, up.FX, up.DX, up.DY = false, "", 0, 0
+		up.Lie, up.FX, up.DX, up.DY = "", "", 0, 0
+		if p.Lie == "down" || p.Lie == "up" {
+			up.Dir = "down" // de frente: la cara mira al techo
+		}
 		stand, err := c.Frame(l, up)
 		if err != nil {
 			return nil, err
 		}
-		// Se gira el cuerpo con la cabeza a la izquierda y se apoya contra
-		// el piso.
-		body := stand.Crop(0, lyingTop, CharW, CharH-lyingTop).RotateCCW()
-		out := NewCanvas(CharW, CharH)
-		out.Blit(body, lyingDX, lyingDY)
+		var out *Canvas
+		switch p.Lie {
+		case "down":
+			out = stand
+		case "up":
+			out = stand.Rotate180()
+		default:
+			// Se gira el cuerpo con la cabeza a la izquierda y se apoya
+			// contra el piso; "right" es su reflejo.
+			body := stand.Crop(0, lyingTop, CharW, CharH-lyingTop).RotateCCW()
+			out = NewCanvas(CharW, CharH)
+			out.Blit(body, lyingDX, lyingDY)
+			if p.Lie == "right" {
+				out = out.Mirror()
+			}
+		}
 		return c.fx(l, out, p)
 	}
 	dir, mirror := p.Dir, false
