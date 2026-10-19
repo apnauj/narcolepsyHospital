@@ -11,12 +11,13 @@
 //   mundo con setWorld para saber dónde está cada cama).
 // - Paciente cargado: sobre el robot (ride del robot) o sobre la camilla del
 //   camillero (la camilla la dibuja el propio paciente, ride de la camilla).
-// - El emote «!» solo sale con flags.alert (alerta permanente: está en las
-//   dos colas). En `attack` el «!» ya viene dibujado en el frame de la hoja,
-//   así que no se duplica.
+// - Efectos («!», «Zzz», estrellitas, sirena del robot): NO se dibujan aquí.
+//   Los pinta web/js/fx encima, y las hojas se generan sin ellos
+//   (BakeFX = false en tools/spritegen). Por eso el robot es siempre el
+//   frame 0 y no hay emote de alerta.
 
 import {
-  animFrame, characterFrame, spriteFrame, emoteFrame, objectFor,
+  animFrame, characterFrame, spriteFrame, objectFor,
 } from "./sheets.js";
 import { appearanceFor, staffAppearanceFor, layersFor } from "./layers.js";
 
@@ -100,11 +101,8 @@ export class SpriteRenderer {
     const bx = cx;
     const by = cy + FOOT_DY;
     this.drawShadow(ctx, bx, by, 1.6);
-    // La sirena (frames rojo/azul) solo gira cuando lleva a alguien.
-    const frame = e.carrying ? Math.floor(Math.max(0, e.animTime ?? 0) * robot.fps) % robot.frames : 0;
-    this.blit(ctx, robot, spriteFrame(robot, frame), bx - robot.anchor.x, by - robot.anchor.y);
+    this.blit(ctx, robot, spriteFrame(robot, 0), bx - robot.anchor.x, by - robot.anchor.y);
     if (e.carrying) this.robotAt.set(e.carrying, { x: cx, y: cy });
-    if (e.flags?.alert) this.drawAlert(ctx, e, bx, by - robot.anchor.y - 2);
   }
 
   // --- Pacientes y personal --------------------------------------------------
@@ -118,26 +116,23 @@ export class SpriteRenderer {
     const layers = this.layersOf(e.kind, e.id);
     const bx = cx;
     const by = cy + FOOT_DY;
-    let top = by - art.characters.anchor.y; // para ubicar el «!»
 
     if (e.kind === "patient" && e.carriedBy) {
-      top = this.drawCarried(ctx, e, layers, rect, cx, cy);
+      this.drawCarried(ctx, e, layers, rect, cx, cy);
     } else if (e.kind === "patient" && IN_BED.has(anim) && this.beds.has(`${cx},${cy}`)) {
       const { decor, sprite } = this.beds.get(`${cx},${cy}`);
       const left = decor.tx * 16 - sprite.origin.x;
       const up = decor.ty * 16 - sprite.origin.y;
       // Dormido: acostado con el giro de la cama; despertando: sentado, sin girar.
       this.drawRide(ctx, layers, rect, left, up, sprite.ride, LYING.has(anim));
-      top = up + sprite.ride.y - 16;
     } else {
       this.drawShadow(ctx, bx, by, 1);
       const flip = anim === "sleep" && dir === "right";
       this.drawLayers(ctx, layers, rect, bx - art.characters.anchor.x, by - art.characters.anchor.y, flip);
     }
-    if (e.flags?.alert) this.drawAlert(ctx, e, cx, top - 2);
   }
 
-  // Paciente sobre el robot o sobre la camilla. Devuelve el borde de arriba.
+  // Paciente sobre el robot o sobre la camilla.
   drawCarried(ctx, e, layers, rect, cx, cy) {
     const art = this.art;
     const bx = cx;
@@ -147,7 +142,7 @@ export class SpriteRenderer {
       // El robot ya se dibujó en esta misma posición: solo va encima.
       const r = art.robot;
       this.drawRide(ctx, layers, rect, bx - r.anchor.x, by - r.anchor.y, r.ride, true);
-      return by - r.anchor.y + r.ride.y - 14;
+      return;
     }
     const s = art.stretcher;
     this.drawShadow(ctx, bx, by, 1.4);
@@ -155,7 +150,6 @@ export class SpriteRenderer {
     const top = by - s.anchor.y;
     this.blit(ctx, s, spriteFrame(s, 0), left, top);
     this.drawRide(ctx, layers, rect, left, top, s.ride, true);
-    return top + s.ride.y - 14;
   }
 
   // Capas de una celda, en orden, con la esquina de arriba a la izquierda en (x, y).
@@ -203,15 +197,6 @@ export class SpriteRenderer {
     ctx.globalAlpha = SHADOW_ALPHA;
     ctx.drawImage(sh.image, 0, 0, sh.frame.w, sh.frame.h, bx - Math.round(sh.anchor.x * k), by - sh.anchor.y, w, sh.frame.h);
     ctx.globalAlpha = prev;
-  }
-
-  /** Emote de alerta sobre la cabeza, con un saltito. */
-  drawAlert(ctx, e, x, bottom) {
-    const em = this.art.emotes;
-    if (!em.image) return;
-    const r = emoteFrame(this.art, "alert");
-    const bob = Math.floor(Math.max(0, e.animTime ?? 0) * 3) % 2;
-    ctx.drawImage(em.image, r.sx, r.sy, r.sw, r.sh, x - r.sw / 2, bottom - r.sh - bob, r.sw, r.sh);
   }
 
   /**

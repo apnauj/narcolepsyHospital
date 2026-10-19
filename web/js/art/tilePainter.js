@@ -109,7 +109,7 @@ export function tilePainter(art, world = null) {
     }
     const sprite = objectFor(art, d);
     if (!sprite) return;
-    // Lo de techo (ventilador) va en drawOverlay, encima de los personajes.
+    // Lo de techo (ventilador: solo su eje) va en drawOverlay.
     if (sprite.tags?.includes("ceiling")) return;
     blitObject(ctx, d, sprite, x, y);
     if (d.kind === "doorNumber" && d.label) drawNumber(ctx, d.label, x, y, sprite);
@@ -130,13 +130,22 @@ export function tilePainter(art, world = null) {
     }
   }
 
+  // Del ventilador solo el eje (el centro 6×6 del frame 0): las aspas que
+  // giran las pinta web/js/fx encima.
+  function drawHub(ctx, sprite, x, y) {
+    if (!sprite.image) return;
+    const f = spriteFrame(sprite, 0);
+    const c = Math.floor((f.sw - 6) / 2);
+    ctx.drawImage(sprite.image, f.sx + c, f.sy + c, 6, 6, x + c, y + c, 6, 6);
+  }
+
   painter.zoneBorder = flatPainter.zoneBorder;
 
   /**
    * Segundo pase, después de dibujar las entidades: repinta lo que debe
    * quedar sobre los personajes que pasan por detrás (la parte de un mueble
    * alto que sobresale por encima de su huella: copas de palmeras, letrero
-   * de la entrada) y lo de techo (ventiladores). El contexto es el de
+   * de la entrada) y el eje de los ventiladores. El contexto es el de
    * pantalla, como el de drawWorld; este método aplica la cámara.
    */
   painter.drawOverlay = function drawOverlay(ctx, world2, camera) {
@@ -165,7 +174,7 @@ export function tilePainter(art, world = null) {
       if (d.tx + dw + 4 < view.tx0 || d.tx - 4 > view.tx1 || d.ty + dh + 3 < view.ty0 || d.ty - 3 > view.ty1) continue;
       const x = d.tx * S;
       const y = d.ty * S;
-      if (ceiling) blitObject(ctx, d, sprite, x, y);
+      if (ceiling) drawHub(ctx, sprite, x, y);
       else blitObject(ctx, d, sprite, x, y, { from: 0, to: sprite.origin.y });
     }
     ctx.restore();
