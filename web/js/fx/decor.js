@@ -153,80 +153,110 @@ export function drawFan(ctx, x, y, t) {
   rect(ctx, C.ink, x + 7, y + 7, 2, 2);
 }
 
-/** Partido en la pantalla de la TV (12×8 en x+2, y+3). */
+// Dónde cae cada pantalla dentro de su sprite (px desde la esquina del tile).
+// Salen de las grillas de tools/spritegen: si cambia un sprite, se ajusta aquí.
+export const SCREENS = Object.freeze({
+  tv: { x: 1, y: 3, w: 14, h: 5 },
+  monitor: { x: 3, y: 3, w: 10, h: 5 },
+  chargerBar: { x: 7, y: 3, w: 2, h: 3 },
+  chargerLight: { x: 6, y: 7 },
+  picoEq: { x: 2, y: 2, w: 12, h: 3 },
+  picoSpeaker: { x: 3, y: 5, w: 10, h: 6 },
+});
+
+/** Partido en la pantalla de la TV. */
 export function drawTv(ctx, x, y, t) {
-  const sx = x + 2;
-  const sy = y + 3;
+  const { w, h } = SCREENS.tv;
+  const sx = x + SCREENS.tv.x;
+  const sy = y + SCREENS.tv.y;
   const frame = tvFrame(t);
   if (frame === 3) {
     // «GOL»: la pantalla destella en amarillo y rojo.
     const flash = Math.floor(t * 8) % 2 === 0;
-    rect(ctx, flash ? C.sun : C.red, sx, sy, 12, 8);
-    rect(ctx, flash ? C.red : C.white, sx + 2, sy + 2, 8, 4);
-    rect(ctx, flash ? C.white : C.red, sx + 5, sy + 3, 2, 2);
+    rect(ctx, flash ? C.sun : C.red, sx, sy, w, h);
+    rect(ctx, flash ? C.red : C.white, sx + 2, sy + 1, w - 4, h - 2);
+    rect(ctx, flash ? C.white : C.red, sx + Math.floor(w / 2) - 1, sy + Math.floor(h / 2), 2, 1);
     return;
   }
-  rect(ctx, C.grass, sx, sy, 12, 8);
-  for (const cx of [0, 4, 8]) rect(ctx, C.grassDark, sx + cx, sy, 2, 8);
-  rect(ctx, C.white, sx + 6, sy, 1, 8); // línea de mitad de cancha
-  rect(ctx, C.white, sx, sy + 3, 1, 2); // arcos
-  rect(ctx, C.white, sx + 11, sy + 3, 1, 2);
-  // Jugadores de 1×2: el Junior (rojo y blanco) y el rival (azul).
+  rect(ctx, C.grass, sx, sy, w, h);
+  for (let cx = 0; cx < w; cx += 4) rect(ctx, C.grassDark, sx + cx, sy, 2, h);
+  rect(ctx, C.white, sx + Math.floor(w / 2), sy, 1, h); // línea de mitad de cancha
+  const goalY = sy + Math.floor((h - 2) / 2);
+  rect(ctx, C.white, sx, goalY, 1, 2); // arcos
+  rect(ctx, C.white, sx + w - 1, goalY, 1, 2);
+  // Jugadas en una cancha de 12×8, escaladas a la pantalla: el Junior (rojo
+  // y blanco), el rival (azul) y el balón.
   const PLAYS = [
     { ball: [5, 4], junior: [3, 3], rival: [8, 5] },
     { ball: [7, 3], junior: [5, 3], rival: [8, 3] },
     { ball: [9, 4], junior: [7, 4], rival: [10, 2] },
   ];
+  const at = ([px, py]) => [sx + Math.floor((px * w) / 12), sy + Math.min(h - 2, Math.floor((py * h) / 8))];
   const p = PLAYS[frame];
-  rect(ctx, C.red, sx + p.junior[0], sy + p.junior[1], 1, 1);
-  rect(ctx, C.white, sx + p.junior[0], sy + p.junior[1] + 1, 1, 1);
-  rect(ctx, C.blue, sx + p.rival[0], sy + p.rival[1], 1, 2);
-  rect(ctx, C.white, sx + p.ball[0], sy + p.ball[1], 1, 1);
+  const [jx, jy] = at(p.junior);
+  const [rx, ry] = at(p.rival);
+  const [bx, by] = at(p.ball);
+  rect(ctx, C.red, jx, jy, 1, 1);
+  rect(ctx, C.white, jx, jy + 1, 1, 1);
+  rect(ctx, C.blue, rx, ry, 1, 2);
+  rect(ctx, C.white, bx, by, 1, 1);
   rect(ctx, C.sky, sx, sy, 2, 1); // brillo del vidrio
 }
 
-/** Línea del monitor cardíaco (8×6 en x+4, y+4) y su lucecita roja. */
+/** Línea del monitor cardíaco y su lucecita roja. */
 export function drawMonitor(ctx, x, y, t) {
+  const { w, h } = SCREENS.monitor;
+  const sx = x + SCREENS.monitor.x;
+  const sy = y + SCREENS.monitor.y;
   const off = ecgOffset(t);
-  rect(ctx, C.dark, x + 4, y + 4, 8, 6);
+  // ECG está pensado para 6 filas; se aplasta a las h de la pantalla.
+  const rowOf = (i) => Math.min(h - 1, Math.round((ECG[i % ECG.length] * (h - 1)) / 5));
+  rect(ctx, C.dark, sx, sy, w, h);
   // Cada columna une su punto con el anterior: la línea queda continua.
-  let prev = ECG[off % ECG.length];
-  for (let i = 0; i < 8; i++) {
-    const row = ECG[(i + off) % ECG.length];
+  let prev = rowOf(off);
+  for (let i = 0; i < w; i++) {
+    const row = rowOf(i + off);
     const top = Math.min(prev, row);
-    rect(ctx, i === 7 ? C.mint : C.leaf, x + 4 + i, y + 4 + top, 1, Math.max(prev, row) - top + 1);
+    rect(ctx, i === w - 1 ? C.mint : C.leaf, sx + i, sy + top, 1, Math.max(prev, row) - top + 1);
     prev = row;
   }
   // La luz se prende cuando el pico del latido pasa por la punta.
-  const tip = (7 + off) % ECG.length;
-  if (tip === 8 || tip === 9) rect(ctx, C.red, x + 11, y + 4, 1, 1);
+  const tip = (w - 1 + off) % ECG.length;
+  if (tip === 8 || tip === 9) rect(ctx, C.red, sx + w - 1, sy, 1, 1);
 }
 
 /** Cargador: luz y barra de carga. `docked` = hay robot en su puesto. */
 export function drawCharger(ctx, x, y, t, docked) {
+  const bar = SCREENS.chargerBar;
+  const light = SCREENS.chargerLight;
   if (docked) {
-    const level = Math.floor(t * 5) % 9; // 0..8 px
-    rect(ctx, C.dark, x + 7, y + 4, 2, 8);
-    if (level > 0) rect(ctx, C.leaf, x + 7, y + 12 - level, 2, level);
-    if (Math.floor(t * 4) % 2 === 0) rect(ctx, C.grass, x + 5, y + 4, 1, 2);
+    const level = Math.floor(t * 5) % (bar.h + 1); // 0..h px
+    rect(ctx, C.dark, x + bar.x, y + bar.y, bar.w, bar.h);
+    if (level > 0) rect(ctx, C.leaf, x + bar.x, y + bar.y + bar.h - level, bar.w, level);
+    if (Math.floor(t * 4) % 2 === 0) rect(ctx, C.grass, x + light.x, y + light.y, 1, 1);
   } else if (t % 1 < 0.3) {
-    rect(ctx, C.red, x + 5, y + 4, 1, 2);
+    rect(ctx, C.red, x + light.x, y + light.y, 1, 1);
   }
 }
 
 /** Picó: ecualizador en el panel rojo y parlante que bombea al golpe. */
 export function drawPico(ctx, x, y, t) {
   const { beat, thump } = picoBeat(t);
-  rect(ctx, C.dark, x + 3, y + 2, 10, 4);
-  for (let i = 0; i < 5; i++) {
-    const h = 1 + (hash2(beat, i) % 4);
-    rect(ctx, C.red, x + 4 + i * 2, y + 6 - h, 1, h);
-    rect(ctx, C.sun, x + 4 + i * 2, y + 6 - h, 1, 1);
+  const eq = SCREENS.picoEq;
+  const sp = SCREENS.picoSpeaker;
+  rect(ctx, C.dark, x + eq.x, y + eq.y, eq.w, eq.h);
+  const bars = Math.floor(eq.w / 2);
+  for (let i = 0; i < bars; i++) {
+    const hgt = 1 + (hash2(beat, i) % eq.h);
+    const bx = x + eq.x + 1 + i * 2;
+    const by = y + eq.y + eq.h - hgt;
+    rect(ctx, C.red, bx, by, 1, hgt);
+    rect(ctx, C.sun, bx, by, 1, 1);
   }
   if (thump) {
-    rect(ctx, C.sun, x + 4, y + 7, 8, 8);
-    rect(ctx, C.leaf, x + 6, y + 9, 4, 4);
-    rect(ctx, C.ink, x + 7, y + 10, 2, 2);
+    rect(ctx, C.sun, x + sp.x, y + sp.y, sp.w, sp.h);
+    rect(ctx, C.leaf, x + sp.x + 2, y + sp.y + 1, sp.w - 4, sp.h - 2);
+    rect(ctx, C.ink, x + sp.x + Math.floor(sp.w / 2) - 1, y + sp.y + Math.floor(sp.h / 2) - 1, 2, 2);
   }
 }
 

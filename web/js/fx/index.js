@@ -53,7 +53,7 @@ export const LINE_TIMEOUT = 8;
 /** Mínimo entre ronquidos. */
 export const SNORE_EVERY = 6;
 /** Altura del «!» sobre el centro de la entidad. */
-export const BANG_DY = -15;
+export const BANG_DY = -13; // 2 px sobre la cabeza del sprite de 20×20
 /** Altura de la sirena: 6 px = medio cuadrito de 12. */
 export const SIREN_DY = -6;
 
