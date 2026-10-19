@@ -422,3 +422,9 @@
     grid-template-areas: "banner" "map" "tools" "log" "side";
   }
 }
+
+/* Barra de acciones compacta: con la música son 11 botones y en pantallas
+   medianas tienen que caber en dos filas. */
+.toolbar { gap: 6px; }
+.toolbar .btn { padding: 4px 8px; font-size: 12px; }
+.toolbar .btn-music { font-size: 14px; min-width: 32px; padding: 3px 6px; }
