@@ -529,9 +529,12 @@ func signPanel(lines []string, extraLeft, padY int, bg, frame, ink int) (*Canvas
 	return c, nil
 }
 
-// signNoSleep: "SE PROHÍBE DORMIR EN EL PASILLO", aviso de prohibición.
+// signNoSleep: "SE PROHÍBE DORMIR", aviso de prohibición colgado en los
+// pasillos. Dos líneas cortas para que mida menos de 3 tiles de ancho (deja
+// muro libre entre la puerta de una habitación y la placa de la siguiente) y
+// quepa en el alto del muro; con el texto completo no cabía en ninguno.
 func signNoSleep() (*Canvas, error) {
-	return signPanel([]string{"SE PROHÍBE DORMIR", "EN EL PASILLO"}, 0, 0, n("blanco"), n("rojo-junior"), n("tinta"))
+	return signPanel([]string{"SE PROHÍBE", "DORMIR"}, 0, 0, n("blanco"), n("rojo-junior"), n("tinta"))
 }
 
 // signReception: "RECEPCIÓN" en azul mar.
