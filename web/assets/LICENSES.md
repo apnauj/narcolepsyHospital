@@ -28,3 +28,9 @@ proyecto, generado por `tools/spritegen` a partir de `tools/spritegen/src/*.txt`
   (notabug, codeberg, GitHub, itch.io) ya no responden y solo quedan espejos
   de terceros, que no estaban entre las fuentes permitidas. No hizo falta:
   Public Pixel cubre todos los caracteres del español.
+
+## Música
+
+| Archivo | Origen | Licencia | Para qué |
+|---|---|---|---|
+| `audio/musica.mp3` (4:45, 192 kbps, 6,8 MB) | Aportada por el autor del repositorio | Por confirmar: si no es de uso libre, quitarla antes de publicar el repositorio | Música de fondo de la interfaz |
