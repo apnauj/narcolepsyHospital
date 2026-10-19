@@ -41,6 +41,7 @@ import { HOSPITAL_NAME } from "./menu.js";
 
 const SCREEN_W = 384;
 const SCREEN_H = 216;
+const QUERIES_DELAY_MS = 6000;
 
 export function createGameScene(params, app) {
   return createPlayScene(params, app, { mode: "free" });
@@ -54,6 +55,8 @@ export function createPlayScene(params = {}, app, { mode = "free" } = {}) {
     camera: params.camera ?? null,
     renderer: params.renderer ?? null,
     drawWorld: params.drawWorld ?? null,
+    wasDrag: params.wasDrag ?? null,
+    follow: null, // ID del paciente que la cámara sigue; null = cámara libre
   };
 
   const state = {
@@ -70,6 +73,7 @@ export function createPlayScene(params = {}, app, { mode = "free" } = {}) {
     queries: null,
     time: 0,
     cardClock: 0,
+    robotsClock: 0,
   };
 
   let alive = false;
@@ -155,7 +159,8 @@ export function createPlayScene(params = {}, app, { mode = "free" } = {}) {
 
   async function next() {
     const result = await run(api.scenarioNext);
-    if (result?.step?.done) await showQueries();
+    // Las consultas salen un rato después, para que se vea la última animación.
+    if (result?.step?.done) setTimeout(() => alive && showQueries(), QUERIES_DELAY_MS);
   }
 
   async function showQueries() {
@@ -192,9 +197,37 @@ export function createPlayScene(params = {}, app, { mode = "free" } = {}) {
     menu: () => app.showScene("menu"),
   };
 
+  // ---------- Cámara que sigue al protagonista del último evento ----------
+
+  const FOLLOWED = new Set(["attackStarted", "roomAssigned", "attentionAssigned", "patientWoke"]);
+  const FOLLOW_RATE = 4; // por segundo: cuánto se acerca la cámara a su objetivo
+
+  function followFrom(events) {
+    const e = [...events].reverse().find((ev) => FOLLOWED.has(ev.type) && ev.patient);
+    if (e) stage.follow = e.patient;
+  }
+
+  function updateFollow(dt) {
+    const target = stage.follow && stage.director?.entity?.(stage.follow);
+    if (!target || !stage.camera) return;
+    const cam = stage.camera;
+    const cx = cam.x + cam.visibleW / 2;
+    const cy = cam.y + cam.visibleH / 2;
+    const k = Math.min(1, FOLLOW_RATE * dt);
+    cam.centerOn(cx + (target.x - cx) * k, cy + (target.y - cy) * k);
+  }
+
+  // Mover la cámara a mano la suelta del paciente.
+  const releaseFollow = () => (stage.follow = null);
+  const onKeyRelease = (e) => {
+    if (/^(arrow|[wasd]$)/i.test(e.key)) releaseFollow();
+  };
+
   // ---------- Selección con el mouse ----------
 
   function onCanvasClick(e) {
+    // Soltar el mouse después de arrastrar la cámara no es seleccionar.
+    if (stage.wasDrag?.()) return;
     const rect = app.canvas.getBoundingClientRect();
     const sx = ((e.clientX - rect.left) * SCREEN_W) / rect.width;
     const sy = ((e.clientY - rect.top) * SCREEN_H) / rect.height;
@@ -290,6 +323,8 @@ export function createPlayScene(params = {}, app, { mode = "free" } = {}) {
         queriesPanel: QueriesPanel(queriesEl),
       };
       app.canvas.addEventListener("click", onCanvasClick);
+      app.canvas.addEventListener("pointerdown", releaseFollow);
+      window.addEventListener("keydown", onKeyRelease);
       app.canvas.classList.add("clickable");
       refreshToolbar();
       start().catch((err) => alive && ui.log.push(describeError(err)));
@@ -298,6 +333,8 @@ export function createPlayScene(params = {}, app, { mode = "free" } = {}) {
     unmount() {
       alive = false;
       app.canvas.removeEventListener("click", onCanvasClick);
+      app.canvas.removeEventListener("pointerdown", releaseFollow);
+      window.removeEventListener("keydown", onKeyRelease);
       app.canvas.classList.remove("clickable");
       ui?.log.destroy();
       ui = null;
@@ -310,8 +347,17 @@ export function createPlayScene(params = {}, app, { mode = "free" } = {}) {
       const d = dt * state.speed;
       state.time += d;
       stage.director?.update(d);
+      updateFollow(dt);
       for (const b of bubbles) b.update(d);
       bubbles = bubbles.filter((b) => !b.done);
+      // Las camillas robot solo cambian en el mapa: su indicador se refresca aquí.
+      if (stage.director && ui && state.snapshot) {
+        state.robotsClock += d;
+        if (state.robotsClock > 0.5) {
+          state.robotsClock = 0;
+          ui.indicators.render(state.snapshot, scene.robotsFree());
+        }
+      }
       // La ficha muestra lo que hace la entidad en el mapa: se refresca seguido.
       if (stage.director && state.selection) {
         state.cardClock += d;
@@ -361,7 +407,10 @@ export function createPlayScene(params = {}, app, { mode = "free" } = {}) {
     onResult(result, { initial = false } = {}) {
       state.snapshot = result.snapshot;
       if (stage.director) {
-        if (!initial) stage.director.apply(result.events ?? [], result.snapshot);
+        if (!initial) {
+          stage.director.apply(result.events ?? [], result.snapshot);
+          followFrom(result.events ?? []);
+        }
       } else {
         layout = placeholderLayout(result.snapshot);
         for (const e of result.events ?? []) if (e.type === "patientWoke") wakeBubble(e.patient);
@@ -400,8 +449,7 @@ export function createPlayScene(params = {}, app, { mode = "free" } = {}) {
       return id ?? pickHallwayLocation(state.locations);
     },
 
-    // CONEXIÓN (propuesta al contrato): director.robotsFree() aún no existe;
-    // mientras tanto todas las camillas configuradas están en base.
+    // Camillas robot en base según el director; sin él, todas las configuradas.
     robotsFree() {
       const fromDirector = stage.director?.robotsFree?.();
       return { free: fromDirector ?? app.config.robots, total: app.config.robots };

@@ -457,3 +457,17 @@ test("dt grande (velocidad ×4) no rompe el movimiento ni salta tiles inválidos
   d.update(-1);
   d.update(NaN);
 });
+
+test("el ataque ocurre en la zona que dice la lógica aunque el cuadrito esté en otra", () => {
+  const h = scenarioHospital();
+  const d = new Director(WORLD3, { robots: 2, rng: seededRng(5) });
+  d.sync(h.snapshot()); // todos aparecen en la entrada
+  for (const step of SCENARIO_STEPS.slice(0, 4)) {
+    const r = step.run(h);
+    d.apply(r.events, r.snapshot);
+  }
+  simulate(d, { seconds: 0.2 });
+  assert.equal(d.locationOf("P-001"), "Cafeteria");
+  assert.equal(d.locationOf("P-004"), "Main Hallway");
+  assert.equal(d.locationOf("P-003"), "Waiting Room");
+});

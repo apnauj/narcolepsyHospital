@@ -454,6 +454,18 @@ export class Director {
       job.done = true; // ya estaba dormido: nada que animar
       return;
     }
+    // La lógica dice dónde fue el ataque. Si el cuadrito está en otra zona
+    // (p. ej. el caso de prueba ataca en la cafetería a quien sigue en la
+    // entrada), se le pone en esa zona para que mapa y registro coincidan.
+    const name = locationName(job.event.location);
+    if (this.world.zones.some((z) => z.location === name) && this.zoneHere(p)?.location !== name) {
+      const spot = this.hallwaySpotFor(job.event.location, p);
+      if (spot) {
+        this.release(p);
+        p.placeAt(spot);
+        this.trackZone(rec);
+      }
+    }
     this.holdNow(p, "attack");
     p.moving = false;
     p.state = "Atacado";
