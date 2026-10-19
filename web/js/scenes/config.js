@@ -22,6 +22,7 @@ export function createConfigScene(_params, app) {
   let saveBtn = null;
   let status = null;
   let volumeText = null;
+  let musicText = null;
 
   function readForm() {
     const out = { ...draft };
@@ -29,6 +30,7 @@ export function createConfigScene(_params, app) {
     out.speed = Number(root.querySelector('input[name="speed"]:checked')?.value ?? draft.speed);
     out.showQueues = inputs.showQueues.checked;
     out.volume = Number(inputs.volume.value) / 100;
+    out.musicVolume = Number(inputs.musicVolume.value) / 100;
     return out;
   }
 
@@ -37,6 +39,7 @@ export function createConfigScene(_params, app) {
     for (const radio of root.querySelectorAll('input[name="speed"]')) radio.checked = Number(radio.value) === cfg.speed;
     inputs.showQueues.checked = cfg.showQueues;
     inputs.volume.value = String(Math.round((cfg.volume ?? 0) * 100));
+    inputs.musicVolume.value = String(Math.round((cfg.musicVolume ?? DEFAULT_CONFIG.musicVolume) * 100));
     showVolume();
   }
 
@@ -44,6 +47,8 @@ export function createConfigScene(_params, app) {
   function showVolume() {
     const n = Number(inputs.volume.value);
     volumeText.textContent = n > 0 ? `${n} %` : "Silencio";
+    const m = Number(inputs.musicVolume.value);
+    musicText.textContent = m > 0 ? `${m} %` : "Silencio";
   }
 
   function revalidate() {
@@ -111,6 +116,20 @@ export function createConfigScene(_params, app) {
           revalidate();
         },
       });
+      musicText = h("span", { class: "cfg-volume-value" });
+      inputs.musicVolume = h("input", {
+        type: "range",
+        id: "cfg-musicVolume",
+        min: 0,
+        max: 100,
+        step: 10,
+        oninput: () => {
+          showVolume();
+          revalidate();
+          // Vista previa en vivo; al salir sin guardar se restaura (unmount).
+          app.music?.setVolume(Number(inputs.musicVolume.value) / 100);
+        },
+      });
       staffError = h("p", { class: "cfg-error", role: "alert" });
       status = h("p", { class: "cfg-status" });
       saveBtn = h("button", { type: "submit", class: "btn" }, "Guardar");
@@ -137,6 +156,7 @@ export function createConfigScene(_params, app) {
         ),
         h("div", { class: "cfg-row" }, h("label", { for: "cfg-showQueues", class: "cfg-check" }, inputs.showQueues, " Mostrar el panel de colas")),
         h("div", { class: "cfg-row" }, h("label", { for: "cfg-volume" }, "Volumen de los sonidos"), h("span", {}, inputs.volume, " ", volumeText)),
+        h("div", { class: "cfg-row" }, h("label", { for: "cfg-musicVolume" }, "Volumen de la música"), h("span", {}, inputs.musicVolume, " ", musicText)),
         h(
           "div",
           { class: "cfg-actions" },
@@ -163,6 +183,7 @@ export function createConfigScene(_params, app) {
       revalidate();
     },
     unmount() {
+      app.music?.setVolume(app.config.musicVolume);
       root?.replaceChildren();
       root = null;
     },

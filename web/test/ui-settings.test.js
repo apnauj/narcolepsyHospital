@@ -118,3 +118,20 @@ test("volumen: 0..1, silencio por defecto y compatible con configuraciones vieja
   s.setItem(STORAGE_KEY, JSON.stringify(old));
   assert.equal(loadConfig(s).volume, 0);
 });
+
+test("musicVolume: 0..1, 0.5 por defecto y compatible con configuraciones viejas", () => {
+  assert.equal(DEFAULT_CONFIG.musicVolume, 0.5);
+  assert.equal(validateConfig({ ...DEFAULT_CONFIG, musicVolume: 0 }).value.musicVolume, 0);
+  assert.equal(validateConfig({ ...DEFAULT_CONFIG, musicVolume: "0.8" }).value.musicVolume, 0.8);
+  assert.ok(validateConfig({ ...DEFAULT_CONFIG, musicVolume: 2 }).errors.musicVolume);
+  assert.ok(validateConfig({ ...DEFAULT_CONFIG, musicVolume: -1 }).errors.musicVolume);
+  assert.ok(validateConfig({ ...DEFAULT_CONFIG, musicVolume: "alto" }).errors.musicVolume);
+  const { musicVolume, ...old } = DEFAULT_CONFIG;
+  const r = validateConfig(old);
+  assert.equal(r.ok, true);
+  assert.equal(r.value.musicVolume, 0.5);
+  assert.equal(normalizeConfig({ ...DEFAULT_CONFIG, musicVolume: 9 }).musicVolume, 0.5);
+  const s = memoryStorage();
+  s.setItem(STORAGE_KEY, JSON.stringify(old));
+  assert.equal(loadConfig(s).musicVolume, 0.5);
+});
