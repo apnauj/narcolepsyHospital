@@ -19,7 +19,7 @@ test("dibuja un tile del manifest por cada TILE", () => {
     painter(ctx, v, 32, 48, 2, 3);
     assert.equal(ctx.calls[0]?.path, tilesSheet, `TILE.${name} no dibujó nada`);
     const want = tileFor(art, art.tiles.byType[name] ?? "piso");
-    if (name !== "WALL") {
+    if (name !== "WALL" && name !== "SEA") { // el mar cambia a mar-orilla según el vecino (test aparte)
       assert.equal(ctx.calls[0].sx, want.x, name);
       assert.equal(ctx.calls[0].sy, want.y, name);
     }
