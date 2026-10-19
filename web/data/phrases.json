@@ -7,10 +7,51 @@
     "¡Eche! ¿Y esta camilla de quién es?",
     "Cógela suave, doctor, que yo estoy bien.",
     "Primo, ¿ya ganó el Junior?",
-    "Ñerda, se me fue la pálida."
+    "Ñerda, se me fue la pálida.",
+    "¿Ya pasó el carnaval o todavía?",
+    "Soñé con un sancocho de guandú, ¡qué rico!",
+    "¿Y mi sombrero vueltiao? Lo tenía aquí.",
+    "Me soñé bailando cumbia en la Batalla de Flores.",
+    "¿Esta es la silla Rimax de mi abuela?",
+    "¿Ya hay arepa de huevo o me la perdí?",
+    "¡Eche, qué pena con ustedes!",
+    "Ajá, ¿y la cumbiamba ya empezó?",
+    "Se me antojó un jugo de corozo bien frío.",
+    "¿Quién se comió mi bollo de yuca?",
+    "Estaba soñando con la brisa de Puerto Colombia.",
+    "¡Uy! Mi mamá me espera pa'l almuerzo.",
+    "¿Quién bajó el picó? ¡Súbanle a esa champeta!",
+    "Ajá, ¿y el tinto que me iban a traer?",
+    "¡Ay, hombe! ¿Cuánto rato estuve fuera?",
+    "Me soñé de reina del carnaval, ¡con todo y corona!"
   ],
   "doctor": [
     "Tranquilo, llave, ya pasó.",
-    "Ajá, ve, camina con cuidado."
+    "Ajá, ve, camina con cuidado.",
+    "Signos vitales bien. ¡Pa'lante!",
+    "Tómese un tintico y camine despacio.",
+    "Nada de bailar mapalé hasta mañana, ¿oyó?",
+    "Agüita de panela y a descansar un rato.",
+    "Todo en orden. Si se siente raro, me avisa.",
+    "Bien, mijo. La próxima vez siéntese antes.",
+    "Pulso perfecto, mejor que el del Junior en la final.",
+    "Ya está. Y sin sancocho pesado por hoy, ¿ajá?"
+  ],
+  "attack": [
+    "Ajá, y entonces yo le dije…",
+    "Espérate que te cuento lo del carnav…",
+    "Ese sancocho estaba de rechu…",
+    "Pásame la silla Rimax que me…",
+    "¡Gol del Junioooor…!",
+    "Ya vengo, voy por un raspao y…",
+    "Ombe, lo tengo en la punta de la…",
+    "Mira ese sombrero vueltiao tan bon…",
+    "Dale, que ya casi llega la buse…",
+    "¿Y la novela de anoche? Cuando ella…",
+    "Ponme esa champeta que me la sé…",
+    "Una arepa de huevo y un jugo de…"
+  ],
+  "again": [
+    "¡Ombe, otra vez!"
   ]
 }
