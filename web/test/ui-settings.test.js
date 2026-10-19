@@ -95,3 +95,26 @@ test("funciona sin storage, con storage que lanza y con JSON roto", () => {
   // Sin argumento usa globalThis.localStorage, que en Node no existe.
   assert.deepEqual(loadConfig(), DEFAULT_CONFIG);
 });
+
+test("volumen: 0..1, silencio por defecto y compatible con configuraciones viejas", () => {
+  assert.equal(DEFAULT_CONFIG.volume, 0, "silenciado por defecto");
+  assert.equal(validateConfig({ ...DEFAULT_CONFIG, volume: 0.5 }).value.volume, 0.5);
+  assert.equal(validateConfig({ ...DEFAULT_CONFIG, volume: "0.3" }).value.volume, 0.3, "texto del formulario");
+  assert.equal(validateConfig({ ...DEFAULT_CONFIG, volume: 1 }).ok, true);
+  assert.ok(validateConfig({ ...DEFAULT_CONFIG, volume: 1.5 }).errors.volume);
+  assert.ok(validateConfig({ ...DEFAULT_CONFIG, volume: -0.1 }).errors.volume);
+  assert.ok(validateConfig({ ...DEFAULT_CONFIG, volume: "fuerte" }).errors.volume);
+  // Sin el campo (guardada antes de que existiera): silencio y válida.
+  const { volume, ...old } = DEFAULT_CONFIG;
+  assert.equal(volume, 0);
+  const r = validateConfig(old);
+  assert.equal(r.ok, true);
+  assert.equal(r.value.volume, 0);
+  // normalizeConfig repara un volumen roto y loadConfig lo conserva.
+  assert.equal(normalizeConfig({ ...DEFAULT_CONFIG, volume: 9 }).volume, 0);
+  const s = memoryStorage();
+  saveConfig({ ...DEFAULT_CONFIG, volume: 0.7 }, s);
+  assert.equal(loadConfig(s).volume, 0.7);
+  s.setItem(STORAGE_KEY, JSON.stringify(old));
+  assert.equal(loadConfig(s).volume, 0);
+});
