@@ -1,10 +1,8 @@
 # Uso de IA
 
-> Borrador generado con la IA. Las secciones marcadas con **(completar)** las tengo que escribir yo antes de entregar. El resto lo tengo que revisar para que coincida con lo que de verdad pasó.
-
 ## Herramientas y para qué
 
-- **Claude Code (Claude Opus 5.5)**, para:
+- **Claude Code (Claude Opus 5.5 y Sonnet 5.5)**, para:
   - revisar el enunciado y el código que ya existía;
   - proponer el plan y las preguntas de diseño;
   - implementar el paquete `hospital`, los tests, el programa de consola y la simulación concurrente;
@@ -16,14 +14,14 @@
 
 1. El prompt inicial. Pedía leer el enunciado y revisar la estructura existente, y **antes de escribir código** presentar qué estaba hecho, qué faltaba, un plan y las dudas, para que yo lo aprobara. Ponía como reglas: solo biblioteca estándar, nada extra, código idiomático y un `main` con menú por consola.
 2. La respuesta al plan: *"seguimos directamente la estructura del profe"*, *"la concurrencia sí impleméntala"*, *"quiero que el main tenga las dos opciones"*, *"trabajemos con gitflow"*.
-3. **(completar)**
+3. El prompt de la GUI, se especifico la estética, de dónde debian venir los visuales y como debía de funcionar cada parte de la interfaz. Este prompt se pulio y se reviso antes de pasarlo al agente que se encargo de orquestar los subagentes que crearon el código de la GUI.
 
 ## Casos en que el código generado estaba mal o no era idiomático
 
 1. En `readInt` la IA llamó `min` y `max` a los parámetros. Desde Go 1.21 esos nombres son funciones predefinidas (built-ins), y el parámetro las tapaba dentro de la función. Se renombraron a `lo` y `hi`.
 2. En el escenario usó la variable `toño`. Es un identificador válido en Go (acepta letras Unicode), pero es incómodo de escribir y poco habitual. Se cambió a `tono`.
 3. En el escenario se llamaba a `freed.Number()` sin comprobar si `freed` era `nil`. Si el paciente no hubiera tenido habitación, el programa habría hecho panic. Se añadió la comprobación.
-4. El código que había en el repositorio antes de empezar tenía `narcolepsyLevel` como `string` en vez de constante tipada, punteros innecesarios a `PatientState` y `Location`, y un `internal/service` que llamaba a `hospital.NewDoctor`, que no existía. **(completar: de dónde salió ese código y cómo lo detecté)**
+4. El código que había en el repositorio antes de empezar tenía `narcolepsyLevel` como `string` en vez de constante tipada, punteros innecesarios a `PatientState` y `Location`, y un `internal/service` que llamaba a `hospital.NewDoctor`, que no existía. Este código lo había escrito yo mientras aprendia y entendia las temáticas relacionadas. La IA me ayudo a guiarme y mejorar el código para que fuera de mejor calidad.
 5. El despacho por round-robin que generó la IA le daba el ataque al siguiente de la lista aunque esa persona estuviera atendiendo a otro paciente. En el escenario, Karen Ospina atendía a Wilfrido mientras Toño, también suyo, seguía dormido. El enunciado pide despachar a quien esté *disponible*. Lo detecté yo al revisar la guía. Decidí que quien atiende queda ocupado hasta que su paciente despierta y que, si nadie está libre, el episodio igual se registra, sin atender, con el error `ErrNoStaffAvailable`. Se añadieron dos tests: `TestDispatchSkipsBusyStaff` y `TestNoStaffAvailable`.
 6. Después de ese arreglo quedó otro vacío, que también detecté yo: un paciente que se dormía sin cama y sin nadie libre se quedaba así para siempre, porque al liberarse una cama o un doctor nadie se los pasaba. Pedí una cola. Se implementaron dos colas FIFO (cama y atención) que se reparten cada vez que algo se libera. El episodio sin atender se reemplaza en el historial por el de quien lo atendió. Se cambió `TestWakeUpFreesRoomForHallwayPatient` por `TestWakeUpGivesRoomToNextInQueue` y se añadió `TestWakeUpFreesStaffForNextInQueue`.
 7. Al probar la interfaz gráfica en el navegador, la IA encontró fallos en el código que ella misma había generado:
@@ -33,4 +31,4 @@
 
 ## Qué aprendí
 
-**(completar)**
+Durante este trabajo aprendí muchas cosas y creo que de verdad entendí como funciona POO en Go y la sintaxis del lenguaje. Fue un ejercicio muy interesante analizar el sistema y definir su comportamiento para los requerimientos y además acompañar el trabajo con una guía que me fue explicando y enseñando fue algo muy genial que voy a seguir implementando. Esto me permitió no solo entender el código de manera general sino a profundidad en cada una de las partes y hacerme preguntas.
