@@ -428,3 +428,15 @@
 .toolbar { gap: 6px; }
 .toolbar .btn { padding: 4px 8px; font-size: 12px; }
 .toolbar .btn-music { font-size: 14px; min-width: 32px; padding: 3px 6px; }
+
+/* ---------- Créditos ---------- */
+
+.credits { width: min(640px, 100%); max-height: 100%; overflow-y: auto; }
+.credits-section { margin: 8px 0 4px; }
+.credits-title { font-family: "PixelFont", monospace; font-size: 8px; line-height: 1.6; margin: 0 0 4px; color: var(--sea); }
+.credits ul { margin: 0; padding-left: 1.1em; }
+.credits-item { margin: 2px 0 6px; font-size: 14px; }
+.credits-name { font-weight: bold; }
+.credits-by { color: var(--ink); }
+.credits-note { display: block; color: var(--muted); font-size: 13px; }
+.credits-link { display: block; font-size: 12px; color: var(--sea); word-break: break-all; }

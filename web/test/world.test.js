@@ -238,12 +238,13 @@ test("con N > 6 las alas hacen L o U y el mapa no es un tubo", () => {
 // Ampliación v2: letreros, playa, cancha y comida.
 
 import { WALL_DECOR_SPAN, wallDecorSpan } from "../js/world/index.js";
+import { SIGN_GAP_NEAR, SIGN_GAP_SAME_ROW } from "../js/world/generator.js";
 
 const WALL_KINDS = new Set(["noSleepSign", "doorNumber", "restroomSign", "receptionSign", "menuBoard", "board",
   "tv", "mural", "charger", "extinguisher", "water"]);
 
 test("decor de muro: ningún ancho real se solapa con puertas, ventanas, placas ni otro decor", () => {
-  assert.deepEqual(WALL_DECOR_SPAN.noSleepSign, [-2, 2]);
+  assert.deepEqual(WALL_DECOR_SPAN.noSleepSign, [-1, 1]);
   for (const [n, w] of worlds) {
     const used = new Map(); // "tx,ty" -> decor
     for (const d of w.decor.filter((x) => WALL_KINDS.has(x.kind))) {
@@ -336,6 +337,37 @@ test("comida sobre mesas de la cafetería, después de la mesa", () => {
       assert.ok(ti >= 0, `N=${n}: ${f.kind} sin mesa`);
       assert.ok(ti < w.decor.indexOf(f), `N=${n}: ${f.kind} antes que la mesa`);
       assert.equal(w.tiles[f.ty * w.cols + f.tx], TILE.FURNITURE);
+    }
+  }
+});
+
+test("letreros de «SE PROHÍBE DORMIR»: con muro libre a los lados, centrados y separados", () => {
+  const isFreeWall = (w, tx, ty, self) =>
+    w.tiles[ty * w.cols + tx] === TILE.WALL &&
+    !w.decor.some((d) => d !== self && WALL_KINDS.has(d.kind) && d.ty === ty &&
+      tx >= d.tx + wallDecorSpan(d)[0] && tx <= d.tx + wallDecorSpan(d)[1]);
+  for (const [n, w] of worlds) {
+    const signs = w.decor.filter((d) => d.kind === "noSleepSign");
+    assert.ok(signs.length >= 1, `N=${n}: hay al menos un letrero`);
+    for (const s of signs) {
+      const [l, r] = wallDecorSpan(s);
+      // Muro libre contado desde el borde del letrero hacia cada lado.
+      let left = 0;
+      let right = 0;
+      while (isFreeWall(w, s.tx + l - 1 - left, s.ty, s)) left++;
+      while (isFreeWall(w, s.tx + r + 1 + right, s.ty, s)) right++;
+      const at = `N=${n} letrero (${s.tx},${s.ty}): libre ${left}/${right}`;
+      assert.ok(left >= 1 && right >= 1, `${at}: necesita al menos un tile de muro libre a cada lado`);
+      assert.ok(Math.abs(left - right) <= 1, `${at}: no está centrado en su tramo de muro`);
+    }
+    for (let i = 0; i < signs.length; i++) {
+      for (let j = i + 1; j < signs.length; j++) {
+        const dx = Math.abs(signs[i].tx - signs[j].tx);
+        const dy = Math.abs(signs[i].ty - signs[j].ty);
+        const at = `N=${n}: (${signs[i].tx},${signs[i].ty}) y (${signs[j].tx},${signs[j].ty})`;
+        assert.ok(dy !== 0 || dx >= SIGN_GAP_SAME_ROW, `${at} muy cerca en el mismo muro`);
+        assert.ok(Math.max(dx, dy) >= SIGN_GAP_NEAR, `${at} muy cerca`);
+      }
     }
   }
 });

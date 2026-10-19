@@ -28,6 +28,7 @@ Es un mapa 2D en pixel art del hospital, servido por una API REST hecha con `net
 
 - **Iniciar:** modo libre, con las habitaciones, el personal y los pacientes de la configuración. Se agregan pacientes, doctores y camilleros, se provocan ataques y se despierta a cualquier paciente dormido.
 - **Simular caso de prueba:** el mismo escenario de `go run .`, paso a paso, con las cuatro consultas al final.
+- **Créditos:** quién hizo el proyecto, qué se usó (Go, JS, arte CC0, fuente, música) y la herramienta de IA.
 - **Configuración:** de 2 a 10 habitaciones, personal inicial, de 1 a 3 camillas robot, velocidad, panel de colas y volumen de la música y de los efectos.
 
 La música de fondo arranca con el primer clic o tecla, porque los navegadores no dejan reproducir sonido antes. Se silencia con el botón ♪. El archivo no está en el repositorio: para escucharla, coloca un mp3 en `web/assets/audio/musica.mp3` (ignorado por git).

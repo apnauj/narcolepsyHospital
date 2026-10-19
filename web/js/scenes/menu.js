@@ -396,6 +396,7 @@ export function createMenuScene(_params, app) {
         ["Iniciar", "game"],
         ["Simular caso de prueba", "scenario"],
         ["Configuración", "config"],
+        ["Créditos", "credits"],
       ];
       buttons = items.map(([label, scene], i) =>
         h("button", {

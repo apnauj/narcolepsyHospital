@@ -11,6 +11,7 @@ import { createMenuScene } from "./scenes/menu.js";
 import { createConfigScene } from "./scenes/config.js";
 import { createGameScene } from "./scenes/game.js";
 import { createScenarioScene } from "./scenes/scenario.js";
+import { createCreditsScene } from "./scenes/credits.js";
 import { Camera, TILE_SIZE, attachCameraControls, generateWorld } from "./world/index.js";
 import { Director } from "./entities/index.js";
 import { loadPhrases } from "./ui/bubble.js";
@@ -27,6 +28,7 @@ const SCENES = {
   config: createConfigScene,
   game: createGameScene,
   scenario: createScenarioScene,
+  credits: createCreditsScene,
 };
 
 // Las escenas de juego reciben `build`, que arma el mapa y el director cuando
