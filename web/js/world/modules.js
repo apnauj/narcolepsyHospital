@@ -140,6 +140,24 @@ export class Blueprint {
 }
 
 // ---------------------------------------------------------------------------
+// Ancho real de la decoración de muro, en tiles a lo largo del muro, relativo
+// al tile de anclaje: [izquierda, derecha]. Sale de frame.w y origin.x de
+// web/assets/sprites.json (noSleepSign: 75 px con origin 29 cubre tx-2..tx+2).
+// Lo que no está aquí ocupa solo su tile; si el decor trae `w`, cubre [0, w-1].
+
+export const WALL_DECOR_SPAN = Object.freeze({
+  noSleepSign: Object.freeze([-2, 2]),
+  receptionSign: Object.freeze([-1, 1]),
+  menuBoard: Object.freeze([-1, 1]),
+});
+
+/** [izq, der] de tiles que cubre una decoración de muro, relativo a su anclaje. */
+export function wallDecorSpan(d) {
+  if (WALL_DECOR_SPAN[d.kind]) return WALL_DECOR_SPAN[d.kind];
+  return [0, (d.w ?? 1) - 1];
+}
+
+// ---------------------------------------------------------------------------
 // Marcos locales para las alas.
 
 const DIRS = {
@@ -247,6 +265,10 @@ export function buildCore(bp) {
   bp.furniture(26, 2, "coffeeCart");
   bp.addPoi(26, 3, "coffee");
   for (const [x, y] of [[20, 4], [20, 7], [25, 6]]) bp.furniture(x, y, "table");
+  // Comida sobre las mesas (después del decor de la mesa, mismo tile).
+  for (const [x, y, kind] of [[20, 4, "salchipapas"], [20, 7, "cervezaAguila"], [25, 6, "arrozCoco"]]) {
+    bp.addDecor(x, y, kind, { onTable: true });
+  }
   for (const [x, y] of [[19, 4], [21, 4], [19, 7], [21, 7], [24, 6], [26, 6]]) {
     bp.addDecor(x, y, "chair");
     bp.addPoi(x, y, "chair");
@@ -315,13 +337,17 @@ export function buildCore(bp) {
   }
   for (let y = 23; y <= 30; y++) { bp.paint(0, y, T.HEDGE); bp.paint(29, y, T.HEDGE); }
   for (let x = 1; x <= 28; x++) bp.paint(x, 30, T.HEDGE);
-  for (const [x, y] of [[3, 24], [9, 27], [15, 24], [19, 28], [27, 24]]) bp.furniture(x, y, "palm");
+  for (const [x, y] of [[3, 24], [15, 24], [19, 28], [27, 24], [14, 28]]) bp.furniture(x, y, "palm");
   bp.addPoi(3, 25, "palm");
   bp.addPoi(15, 25, "palm");
   bp.furniture(20, 25, "sign", { w: 2, label: "HOSPITAL DE LOS COSTEÑOS" });
   bp.addDecor(11, 24, "bench", { w: 2 });
   bp.addPoi(11, 24, "bench");
-  for (const [x, y] of [[6, 28], [7, 28], [16, 27], [26, 28]]) bp.addDecor(x, y, "flowers");
+  for (const [x, y] of [[2, 28], [3, 28], [16, 27], [26, 28]]) bp.addDecor(x, y, "flowers");
+  // Cancha de fútbol 8×5 (pasto caminable) a la izquierda del camino de entrada.
+  bp.addDecor(5, 25, "cancha", { w: 8, h: 5 });
+  bp.addPoi(9, 27, "cancha");
+  // Salida lateral al camino de arena que lleva a la playa (la cierra el generador).
   bp.addDecor(24, 30, "gate");
   bp.spawn = { tx: 24, ty: 29 };
   bp.zones.push({ name: "Entrada principal", location: "Main Entrance", rect: { tx: 1, ty: 23, w: 28, h: 7 } });
@@ -417,13 +443,20 @@ export function buildWing(bp, fr, a0, spec) {
     else buildPatientRoom(bp, fr, a0, s, side.number);
   }
 
-  // Decoración del pasillo: ventilador, letrero, extintor, agua y matera.
+  // Decoración del pasillo. El letrero mide 5 tiles (ver WALL_DECOR_SPAN): cabe
+  // entre la placa de una puerta y la del ala siguiente (a0+4..a0+8), así que
+  // va en a0+6 de un lado; agua y extintor van en el lado contrario. Solo en
+  // muros horizontales (el sprite es horizontal) y no en la última ala, que
+  // no tiene a0+8. El ala anterior ocupa a0+1 del lado del letrero opuesto.
   L.decor(bp, fr, a0 + 3, 0, "fan");
   const signSide = spec.index % 2 === 0 ? -2 : 2;
-  L.wall(bp, fr, a0 + 1, signSide, "noSleepSign", { label: "SE PROHÍBE DORMIR EN EL PASILLO" });
-  L.wall(bp, fr, a0 + 5, 2, "extinguisher");
-  L.wall(bp, fr, a0 + 5, -2, "water");
-  L.poi(bp, fr, a0 + 5, -1, "water");
+  if ((fr.dir === "E" || fr.dir === "W") && !spec.last) {
+    L.wall(bp, fr, a0 + 6, signSide, "noSleepSign", { label: "SE PROHÍBE DORMIR EN EL PASILLO" });
+  }
+  const other = -signSide;
+  L.wall(bp, fr, a0 + 6, other, "extinguisher");
+  L.wall(bp, fr, a0 + 4, other, "water");
+  L.poi(bp, fr, a0 + 4, other / 2, "water");
   if (a0 > 0) L.furniture(bp, fr, a0, spec.index % 2 === 0 ? 1 : -1, "plant");
 
   bp.zones.push({
@@ -463,7 +496,9 @@ export function buildTurn(bp, fr, aEnd) {
   L.decor(bp, fr, aEnd + 3, 0, "fan");
   L.decor(bp, fr, aEnd + 2, -1, "bench");
   L.poi(bp, fr, aEnd + 2, -1, "bench");
-  L.wall(bp, fr, aEnd + 4, -2, "noSleepSign", { label: "SE PROHÍBE DORMIR EN EL PASILLO" });
+  if (fr.dir === "E" || fr.dir === "W") {
+    L.wall(bp, fr, aEnd + 4, -2, "noSleepSign", { label: "SE PROHÍBE DORMIR EN EL PASILLO" });
+  }
   L.furniture(bp, fr, aEnd + 6, -1, "plant");
 
   const o = fr.at(ac, -2);

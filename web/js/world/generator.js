@@ -26,8 +26,14 @@ const WING_NAMES = {
   "Pediatrics Hallway": "Pasillo de Pediatría",
 };
 
-/** Tiles de jardín alrededor del edificio. */
+/** Tiles de jardín alrededor del edificio (al norte lo reemplaza la playa). */
 const MARGIN = 2;
+/** Franja de playa del borde norte: mar arriba y arena pegada al edificio. */
+export const SEA_ROWS = 4;
+export const SAND_ROWS = 3;
+const BEACH_ROWS = SEA_ROWS + SAND_ROWS;
+/** Fila (del módulo fijo) donde el seto de la entrada abre la salida lateral. */
+const GATE_Y = 27;
 
 export const MIN_ROOMS = 2;
 export const MAX_ROOMS = 10;
@@ -76,6 +82,7 @@ export function generateWorld({ rooms } = {}) {
       right: right <= 100 + rooms ? { number: right } : { storage: true },
       extendBefore: turnsBefore ? TURN_CORNER : 0,
       extendAfter: turnsAfter ? TURN_STRAIGHT : 0,
+      last: i === wings - 1,
     });
     a += WING_LENGTH;
   }
@@ -88,21 +95,23 @@ export function generateWorld({ rooms } = {}) {
 function finalize(bp) {
   const { minX, minY, maxX, maxY } = bp.bounds();
   const dx = MARGIN - minX;
-  const dy = MARGIN - minY;
+  const dy = BEACH_ROWS - minY;
   const cols = maxX - minX + 1 + 2 * MARGIN;
-  const rows = maxY - minY + 1 + 2 * MARGIN;
+  const rows = maxY - minY + 1 + BEACH_ROWS + MARGIN;
 
   const tiles = new Uint8Array(cols * rows);
   for (let y = minY; y <= maxY; y++) {
     for (let x = minX; x <= maxX; x++) tiles[(y + dy) * cols + (x + dx)] = bp.get(x, y);
   }
 
+  const beach = paintBeach(tiles, cols, rows, dx, dy);
+
   // Una ventana solo tiene sentido en un muro que da al jardín.
   const get = (x, y) => (x < 0 || y < 0 || x >= cols || y >= rows ? TILE.VOID : tiles[y * cols + x]);
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       if (tiles[y * cols + x] !== TILE.WINDOW) continue;
-      const exterior = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([ox, oy]) => get(x + ox, y + oy) === TILE.VOID);
+      const exterior = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([ox, oy]) => [TILE.VOID, TILE.SAND].includes(get(x + ox, y + oy)));
       if (!exterior) tiles[y * cols + x] = TILE.WALL;
     }
   }
@@ -124,11 +133,12 @@ function finalize(bp) {
     rooms: bp.rooms
       .map((r) => ({ number: r.number, rect: rect(r.rect), door: pt(r.door), bed: pt(r.bed), bedside: pt(r.bedside) }))
       .sort((p, q) => p.number - q.number),
-    pois: bp.pois.map(pt).filter((p) => p.kind !== "window" || nextToWindow(p)),
+    pois: [...bp.pois.map(pt).filter((p) => p.kind !== "window" || nextToWindow(p)), ...beach.pois],
     spawn: pt(bp.spawn),
     robotBase: bp.robotBase.map(pt),
     staffRoom: { rect: rect(bp.staffRoom.rect) },
-    decor: bp.decor.map(pt),
+    decor: [...bp.decor.map(pt), ...beach.decor],
+    beach: beach.area,
   };
 }
 
@@ -154,4 +164,46 @@ export function roomAt(world, tx, ty) {
     if (rectContains(r.rect, tx, ty)) return r;
   }
   return null;
+}
+
+/**
+ * Pinta la playa del borde norte y el camino de arena que sale del seto de la
+ * entrada, sube por el margen oeste y llega a la arena. Todo en coordenadas
+ * finales. Devuelve decoración, pois y las cajas de arena y mar.
+ */
+function paintBeach(tiles, cols, rows, dx, dy) {
+  const set = (x, y, t) => { tiles[y * cols + x] = t; };
+  for (let y = 0; y < BEACH_ROWS; y++) {
+    for (let x = 0; x < cols; x++) set(x, y, y < SEA_ROWS ? TILE.SEA : TILE.SAND);
+  }
+  // Camino de arena: del hueco del seto (x = 0 del módulo fijo) al margen y arriba.
+  const lane = MARGIN - 1;
+  const gateX = dx;
+  const gateY = GATE_Y + dy;
+  for (let x = lane; x <= gateX; x++) set(x, gateY, TILE.SAND);
+  for (let y = BEACH_ROWS; y <= gateY; y++) set(lane, y, TILE.SAND);
+
+  const decor = [];
+  const pois = [];
+  const top = SEA_ROWS;           // fila de arena junto al mar
+  const mid = SEA_ROWS + 1;
+  // Palmeras en la fila de arriba (sólidas), cada 9 tiles, lejos del camino.
+  for (let x = 4; x < cols - 1; x += 9) {
+    set(x, top, TILE.FURNITURE);
+    decor.push({ tx: x, ty: top, kind: "palm", under: TILE.SAND });
+  }
+  // Sombrillas (caminables) y conchas sueltas.
+  for (let x = 7; x < cols - 2; x += 12) decor.push({ tx: x, ty: mid, kind: "umbrella" });
+  for (let x = 5; x < cols - 2; x += 7) decor.push({ tx: x + (x % 3), ty: BEACH_ROWS - 1 - (x % 2), kind: "shell" });
+  // Puntos de paseo: bajo cada sombrilla y uno por tramo.
+  for (let x = 6; x < cols - 2; x += 12) pois.push({ tx: x, ty: mid, kind: "beach" });
+  pois.push({ tx: 3, ty: mid, kind: "beach" });
+  return {
+    decor,
+    pois,
+    area: {
+      sea: { tx: 0, ty: 0, w: cols, h: SEA_ROWS },
+      sand: { tx: 0, ty: SEA_ROWS, w: cols, h: SAND_ROWS },
+    },
+  };
 }

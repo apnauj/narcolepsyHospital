@@ -117,7 +117,8 @@ test("zoneAt es coherente con los rectángulos", () => {
     for (let ty = 0; ty < w.rows; ty++) {
       for (let tx = 0; tx < w.cols; tx++) {
         const t = w.tiles[ty * w.cols + tx];
-        if (!isWalkableTile(t) || t === TILE.DOOR || roomAt(w, tx, ty)) continue;
+        // La playa y su camino de arena no son zona (no hay Location que les calce).
+        if (!isWalkableTile(t) || t === TILE.DOOR || t === TILE.SAND || roomAt(w, tx, ty)) continue;
         assert.ok(zoneAt(w, tx, ty), `N=${n}: (${tx},${ty}) caminable sin zona`);
       }
     }
@@ -136,6 +137,7 @@ test("pois y decor válidos", () => {
     for (const k of ["tv", "water", "window", "chair", "coffee"]) assert.ok(kinds.has(k), `N=${n}: falta poi ${k}`);
     for (const p of w.pois) {
       assert.ok(w.walkable(p.tx, p.ty), `N=${n}: poi ${p.kind} en (${p.tx},${p.ty}) no caminable`);
+      if (p.kind === "beach") continue; // la playa no es zona
       assert.ok(zoneAt(w, p.tx, p.ty), `N=${n}: poi ${p.kind} fuera de zona (los pacientes no entran a cuartos)`);
       if (p.kind === "window") {
         const near = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => w.tiles[(p.ty + dy) * w.cols + p.tx + dx] === TILE.WINDOW);
@@ -190,10 +192,14 @@ test("conectividad: desde la entrada se llega a todo", () => {
 
 test("el borde del mapa es jardín (no se sale del mundo)", () => {
   for (const [n, w] of worlds) {
+    // Salvo las puntas de la franja de arena, que son parte de la playa.
+    const sand = w.beach.sand;
+    const inSand = (ty) => ty >= sand.ty && ty < sand.ty + sand.h;
     for (let tx = 0; tx < w.cols; tx++) {
       assert.equal(w.walkable(tx, 0) || w.walkable(tx, w.rows - 1), false, `N=${n}`);
     }
     for (let ty = 0; ty < w.rows; ty++) {
+      if (inSand(ty)) continue;
       assert.equal(w.walkable(0, ty) || w.walkable(w.cols - 1, ty), false, `N=${n}`);
     }
   }
@@ -224,6 +230,112 @@ test("con N > 6 las alas hacen L o U y el mapa no es un tubo", () => {
       assert.ok(ratio <= 1.3 && ratio < straight, `N=${n}: relación ${ratio.toFixed(2)} vs recta ${straight.toFixed(2)}`);
     } else {
       assert.ok(wings.every((z) => z.rect.w > z.rect.h), `N=${n}: en línea recta`);
+    }
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Ampliación v2: letreros, playa, cancha y comida.
+
+import { WALL_DECOR_SPAN, wallDecorSpan } from "../js/world/index.js";
+
+const WALL_KINDS = new Set(["noSleepSign", "doorNumber", "restroomSign", "receptionSign", "menuBoard", "board",
+  "tv", "mural", "charger", "extinguisher", "water"]);
+
+test("decor de muro: ningún ancho real se solapa con puertas, ventanas, placas ni otro decor", () => {
+  assert.deepEqual(WALL_DECOR_SPAN.noSleepSign, [-2, 2]);
+  for (const [n, w] of worlds) {
+    const used = new Map(); // "tx,ty" -> decor
+    for (const d of w.decor.filter((x) => WALL_KINDS.has(x.kind))) {
+      const horizontal = d.facing === "up" || d.facing === "down";
+      if (d.kind === "noSleepSign") assert.ok(horizontal, `N=${n}: letrero en muro vertical (${d.tx},${d.ty})`);
+      const [l, r] = wallDecorSpan(d);
+      for (let i = l; i <= r; i++) {
+        const tx = d.tx + (horizontal ? i : 0);
+        const ty = d.ty + (horizontal ? 0 : i);
+        const at = `N=${n} ${d.kind} (${d.tx},${d.ty}) en (${tx},${ty})`;
+        assert.equal(w.tiles[ty * w.cols + tx], TILE.WALL, `${at}: debe caer en muro liso, sin puerta ni ventana`);
+        const other = used.get(`${tx},${ty}`);
+        assert.equal(other, undefined, `${at}: solapa con ${other?.kind} (${other?.tx},${other?.ty})`);
+        used.set(`${tx},${ty}`, d);
+      }
+    }
+    // Las placas de número están junto a su puerta.
+    for (const r of w.rooms) {
+      const plate = w.decor.find((d) => d.kind === "doorNumber" && d.label === String(r.number));
+      assert.ok(plate && adjacent(plate, r.door), `N=${n}: placa ${r.number} junto a la puerta`);
+    }
+  }
+});
+
+test("playa: franja norte de arena y mar en todo el ancho, mar sin caminar", () => {
+  for (const [n, w] of worlds) {
+    const { sea, sand } = w.beach;
+    assert.ok(sea.h >= 3 && sea.h <= 4 && sand.h >= 2 && sand.h <= 3, `N=${n}`);
+    assert.equal(sea.ty, 0);
+    assert.equal(sand.ty, sea.h);
+    for (let tx = 0; tx < w.cols; tx++) {
+      for (let ty = 0; ty < sea.h; ty++) {
+        assert.equal(w.tiles[ty * w.cols + tx], TILE.SEA, `N=${n} (${tx},${ty})`);
+        assert.equal(w.walkable(tx, ty), false);
+      }
+      for (let ty = sand.ty; ty < sand.ty + sand.h; ty++) {
+        const t = w.tiles[ty * w.cols + tx];
+        // Las palmeras de la arena son sólidas.
+        assert.ok(t === TILE.SAND || t === TILE.FURNITURE, `N=${n} (${tx},${ty}) = ${t}`);
+      }
+    }
+    const beachPois = w.pois.filter((p) => p.kind === "beach");
+    assert.ok(beachPois.length >= 2, `N=${n}: pois de playa`);
+    for (const p of beachPois) {
+      assert.equal(w.tiles[p.ty * w.cols + p.tx], TILE.SAND);
+      assert.ok(findPath(w, w.spawn, p), `N=${n}: sin camino del spawn a la playa (${p.tx},${p.ty})`);
+    }
+    const kinds = new Set(w.decor.map((d) => d.kind));
+    for (const k of ["palm", "umbrella", "shell"]) assert.ok(kinds.has(k), `N=${n}: falta ${k}`);
+  }
+});
+
+test("cancha 8×5: cabe, es caminable, tiene poi, y no pisa decor ni el camino", () => {
+  for (const [n, w] of worlds) {
+    const c = w.decor.find((d) => d.kind === "cancha");
+    assert.ok(c, `N=${n}`);
+    assert.equal(c.w, 8);
+    assert.equal(c.h, 5);
+    assert.ok(c.tx >= 0 && c.ty >= 0 && c.tx + 8 <= w.cols && c.ty + 5 <= w.rows);
+    const inside = (x, y) => x >= c.tx && x < c.tx + 8 && y >= c.ty && y < c.ty + 5;
+    for (let ty = c.ty; ty < c.ty + 5; ty++) {
+      for (let tx = c.tx; tx < c.tx + 8; tx++) {
+        assert.ok(w.walkable(tx, ty), `N=${n}: cancha no caminable en (${tx},${ty})`);
+        assert.notEqual(w.tiles[ty * w.cols + tx], TILE.PATH, `N=${n}: cancha sobre el camino`);
+        assert.equal(zoneAt(w, tx, ty)?.location, "Main Entrance");
+      }
+    }
+    for (const d of w.decor) {
+      if (d === c) continue;
+      for (let j = 0; j < (d.h ?? 1); j++) {
+        for (let i = 0; i < (d.w ?? 1); i++) {
+          assert.equal(inside(d.tx + i, d.ty + j), false, `N=${n}: ${d.kind} (${d.tx},${d.ty}) dentro de la cancha`);
+        }
+      }
+    }
+    const poi = w.pois.find((p) => p.kind === "cancha");
+    assert.ok(poi && inside(poi.tx, poi.ty), `N=${n}: poi cancha`);
+    assert.ok(findPath(w, w.spawn, poi), `N=${n}: sin camino a la cancha`);
+  }
+});
+
+test("comida sobre mesas de la cafetería, después de la mesa", () => {
+  for (const [n, w] of worlds) {
+    const cafe = w.zones.find((z) => z.location === "Cafeteria").rect;
+    const food = w.decor.filter((d) => d.onTable);
+    assert.deepEqual(food.map((d) => d.kind).sort(), ["arrozCoco", "cervezaAguila", "salchipapas"], `N=${n}`);
+    for (const f of food) {
+      assert.ok(rectContains(cafe, f.tx, f.ty), `N=${n}: ${f.kind} fuera de la cafetería`);
+      const ti = w.decor.findIndex((d) => d.kind === "table" && d.tx === f.tx && d.ty === f.ty);
+      assert.ok(ti >= 0, `N=${n}: ${f.kind} sin mesa`);
+      assert.ok(ti < w.decor.indexOf(f), `N=${n}: ${f.kind} antes que la mesa`);
+      assert.equal(w.tiles[f.ty * w.cols + f.tx], TILE.FURNITURE);
     }
   }
 });
